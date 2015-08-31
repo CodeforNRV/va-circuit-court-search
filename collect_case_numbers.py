@@ -32,8 +32,8 @@ class caseNumberThread(threading.Thread):
         last_name = 'A'
         if last_record is not None:
             last_name = last_record['name']
-        if "FRANK'S" in last_name and 'Arlington' in self.courtName:
-            last_name = "FRANK'T"
+        if "WYNKOOP" in last_name:
+            last_name = "WZ"
         print self.courtName, last_name
         get_case_numbers(opener, db, self.court, self.courtName, last_name)
 
@@ -94,11 +94,11 @@ def get_case_numbers(opener, db, court, courtName, name):
     final_case_prev = None
     while(final_case != final_case_prev and running):
         curHour = datetime.today().hour
-        if curHour > 7 and curHour < 18:
-            print 'Rate limit during working hours', datetime.today().time()
-            time.sleep(15)
-        else:
-            time.sleep(1)
+        #if curHour > 7 and curHour < 18:
+        #    print 'Rate limit during working hours', datetime.today().time()
+        #    time.sleep(15)
+        #else:
+        time.sleep(1)
         print 'Request', courtName, datetime.today().time()
         search_results = opener.open(search_url, data)
         html = search_results.read()
@@ -147,6 +147,9 @@ try:
     last_court_index = 0
     while last_court_index < len(courts):
         court_name = courts[last_court_index]['fullName']
+        if 'Richmond City' not in court_name and 'Floyd' not in court_name:
+            last_court_index += 1
+            continue
         if threading.activeCount() < 4:
             caseNumberThread(court_name).start()
             last_court_index += 1

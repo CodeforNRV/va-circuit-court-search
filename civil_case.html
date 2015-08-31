@@ -1,0 +1,559 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+
+  
+
+<html>
+<HEAD>
+
+
+
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="IBM WebSphere Studio">
+
+
+<LINK href="FormStyle.css" rel="stylesheet" type="text/css"> 
+<TITLE> Virginia Courts Case Information System </TITLE>
+<!-- Disabling Back Button -->
+<style> 
+	.even{background-color: ffffff;} 
+	.odd{background-color: c0c0c0;} 
+</style>
+<script language="javascript" type="text/javascript" src="js/CriminalCaseDetails.js"> 
+</SCRIPT>
+</HEAD>
+<body  onLoad="goHist(); alternate('count'); " >
+ 
+<table class=outer align="center" width="100%"> 
+ <tr><td>
+ <table class=inner cellspacing="0" cellpadding="0">
+  <tr>
+  <td align="center">
+ 	<script language="Javascript" type="text/javascript">
+	function hideHeader() {
+		document.getElementById("headerDiv").style.display = "none";
+	}
+</script>
+<div id="headerDiv" onclick="hideHeader()" title="Hide Header Image" alt="Hide Header Image"><div id="headerImgDiv"></div></div> 
+
+  </td>
+  </tr>
+  <tr>
+  <td id= BackgroundWhite align = "center">
+  
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+
+
+
+
+
+
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="IBM WebSphere Studio">
+
+</HEAD>
+<BODY>
+
+
+  
+<table cellspacing="5">
+	<tr>
+		<td>
+		<form action="Search.do" method="post">
+			<INPUT type="hidden"name="submitValue" value="SA">
+			 
+			<input type="submit" value="  Name List " onclick="javascript:submitCheck()" disabled="disabled">
+			</div>
+			
+		</form>
+		</td>
+
+		<td>
+
+		<form action="CaseDetail.do" method="post">
+			<INPUT type="hidden" name="submitValue" value="P">
+			<INPUT type="hidden" name="courtId" value="540"> 
+			<INPUT type="hidden" name="categorySelected" value="Civil"> 
+			<INPUT type="hidden" name="caseStatus" value='A'>
+			
+			  <INPUT type="hidden" name= "caseNo" value='CL09000293-00'>
+		   
+ 		<div id="pleadings">
+ 			<input type="submit" value="  Pleadings/Orders " onclick="javascript:submitCheck()">
+		</div>
+		</form>
+		</td>
+		<td>
+
+		<form action="CaseDetail.do" method="post">
+			<INPUT type="hidden"name="submitValue" value="S">
+			<INPUT type="hidden" name="page" value=AllCase> 
+			<INPUT type="hidden" name="courtId"	value="540" >
+			<INPUT type="hidden" name="categorySelected" value="Civil">
+			<INPUT type="hidden" name="caseStatus" value='A'>
+			
+			  <INPUT type="hidden" name= "caseNo" value='CL09000293-00'>
+		   
+		 
+			<div id="services">
+			  <input type="submit" value="  Services " onclick="javascript:submitCheck()">
+			</div>
+		 
+		</form>
+		</td>
+
+		<td>
+ <div id= "nameList"> 
+ <form action= "MainMenu.do" method= "POST"> 
+    <INPUT type= "hidden" name= "courtId" value="540"> 
+ <div id= "mainmenu">
+   <INPUT type="submit" value="Main Menu" onclick="javascript:showMainMenu()">
+ </div>
+ </form>
+ </div>
+ </td>
+ 
+ <td>
+ <form id= "nextForm" action= "Logoff.do" method= "POST">
+   <INPUT type="hidden" name= "searchType">
+ <div id= "logoff">
+   <INPUT type="submit" value="Logoff" onclick="javascript:submitCheck()">
+ </div>
+ </form>
+ </td>	
+
+	</tr>
+</table>
+</BODY>
+</HTML>
+
+  </td>
+  </tr>
+  <tr id= BackgroundWhite>
+  <td> 
+ <!-- <table align = "center">
+   <tr>
+   <td> -->
+   <div id= "fontMainmenuLarger" align="center">
+   Charlottesville City Circuit
+   <span id="blackFont"> - Civil Division </span>
+   </div>
+    
+   <div id="fontMainmenuSmaller" align="center">
+   Case Details 
+   </div>	  
+   <br/>
+ <!--  </td>
+   </tr>   -->
+  
+   <table width="100%" border="0" align="center">
+   <tr><td>
+   <table width="80%" cellspacing="2" cellpadding="2" border="2" align="center">
+	<tr>
+	<td nowrap valign="top" colspan="2"><DIV id=fontBold>Case&nbsp;Number:&nbsp;</DIV>
+	CL09000293-00&nbsp;
+	</td>      
+	<td nowrap valign="top" colspan="2"><DIV id=fontBold>Filed:&nbsp;</DIV>
+	07/29/09&nbsp;
+	</td>
+	</tr>
+	<tr>
+		
+		
+			<td nowrap valign="top" colspan="5"><DIV id=fontBold>Filing&nbsp;Type:&nbsp;</DIV>
+				Complaint - Catch-All&nbsp;
+			</td>
+		
+	</tr>
+	<tr>
+	<td nowrap valign="top" colspan="2"><DIV id=fontBold>Number of &nbsp;Plaintiffs:&nbsp;</DIV>
+	0001&nbsp;
+	</td>
+	<td nowrap valign="top" colspan="2"><DIV id=fontBold>Number of&nbsp;Defendants:&nbsp;</DIV>
+	0002&nbsp;
+	</td>
+	</tr>
+	<tr>
+	<td nowrap valign="top" colspan="5"><DIV id=fontBold>Commenced&nbsp;By:&nbsp;</DIV>
+	Initial Filing&nbsp;
+	</td>
+	</tr>
+	<tr>
+	<td nowrap valign="top" colspan="2"><DIV id=fontBold>Bond:&nbsp;</DIV>
+	&nbsp;
+	</td>
+	<td nowrap valign="top" colspan="2"><DIV id=fontBold>Complex &nbsp;Case:&nbsp;</DIV>
+	&nbsp;
+	</td>
+	</tr>
+	</table>
+	<br />
+	<table width="80%" align="center">
+		<tr>
+			<td style="color: red;">If there are more than three plaintiffs or defendants as indicated under "Number of Plaintiffs" or "Number of Defendants" in the table above, please contact the court for the additional party information.</td>
+		</tr>
+	</table>
+	<table width="80%" cellspacing="2" cellpadding="2" border="0" align="center">
+	<tr>
+	<td><br/> </td>
+	</tr>	
+	
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+
+
+
+
+<html>
+<HEAD>
+
+
+
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="IBM WebSphere Studio">
+
+<META http-equiv="Content-Style-Type" content="text/css">
+<LINK href="FinalDispositionStyle.css" rel="stylesheet" type="text/css">
+<TITLE></TITLE>
+</HEAD>
+
+<BODY>
+    <TABLE BORDER="0" width="80%" align="center">
+	<tr>
+	<td>
+	<div id=headerDisplay> Plaintiffs </div>
+	<br/>
+	</td>
+	</tr>
+	
+	</table>
+	<table width="80%"  align="center"> 
+	<tbody>
+	<tr>
+	<td =nowrap>
+	<!--logic:notEmpty name="CaseListForm" property="caseDetailCivil.plaintiffNameOne" -->
+	<UL> 
+	
+	 <LI id=display>
+	    Plaintiff:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id= fontBold>BUCHANAN, JOAN B</span><br/>
+	    Trading as:&nbsp;&nbsp;&nbsp;<br/>
+	    <!-- Hide the attorney name for richmond city circuit -->	    
+	    Attorney:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+	    
+	</li>
+	
+	
+	
+	 
+	 
+
+</table>	
+</BODY>
+</html>
+
+	<br/>
+	
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+
+
+
+
+<html>
+<HEAD>
+
+
+
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="IBM WebSphere Studio">
+
+<META http-equiv="Content-Style-Type" content="text/css">
+<LINK href="FinalDispositionStyle.css" rel="stylesheet" type="text/css">
+<TITLE></TITLE>
+</HEAD>
+
+<BODY>
+    <TABLE BORDER="0" width="80%" align="center">
+	<tr>
+	<td>
+	<div id=headerDisplay> Defendants </div>
+	<br/>
+	</td>
+	</tr>
+	</table>
+	<table width="80%"  align="center"> 
+	<tbody>
+	<tr>
+	<td =nowrap>
+	<!-- logic:notEmpty name="CaseListForm" property="caseDetailCivil.defendantNameOne" -->
+	<UL> 
+	
+	
+	<LI id=display>
+	    Defendant1:&nbsp;&nbsp;&nbsp;<span id= fontBold>LI, JANET M.D.</span><br/>
+	    Trading as:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+	    
+	    Attorney:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+	    
+	</li>	
+	
+	
+	<br/> 
+	<LI id=display>	    
+	    Defendant2:&nbsp;&nbsp;&nbsp;<span id= fontBold>CARILION MEDICAL CENTER</span><br/>
+	    Trading as:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+	     
+	    Attorney:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+	    
+	</li>
+	 
+	 
+	</ul>	
+	</td></tr>
+	</table>
+</BODY>
+</html>
+
+	
+	
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+
+
+
+
+<html>
+<HEAD>
+
+
+
+</HEAD>
+
+<TABLE BORDER="0" width="80%" align="center" > 
+<tr>
+<td>
+<div id = headerDisplay>Hearings</div> 
+<br/>
+</td>
+</tr>
+</table>
+
+<TABLE BORDER="1" width="80%" align="center"  id= "count"> 
+<tr>
+<TD align= center><span id=hearingFont style="white-space: nowrap;"> # </span></TD>
+<TD align= center><span id=hearingFont style="white-space: nowrap;"> Date</span></TD>
+<TD align= center><span id=hearingFont style="white-space: nowrap;"> Time</span></TD>
+<TD align= center><span id=hearingFont style="white-space: nowrap;"> Type</span></TD>
+<TD align= center><span id=hearingFont style="white-space: nowrap;"> Room</span></TD>
+<TD align= center><span id=hearingFont style="white-space: nowrap;"> Duration</span></TD>
+<TD align= center><span id=hearingFont style="white-space: nowrap;"> Jury</span></TD>
+<TD align= center><span id=hearingFont style="white-space: nowrap;"> Result</span></TD>
+</tr>
+
+<tr>
+<td nowrap>
+&nbsp;
+1  
+&nbsp; 
+</td>
+<td nowrap>
+08/09/10 
+&nbsp; 
+</td>
+<td nowrap>
+4:00PM
+ &nbsp; 
+</td>
+<td nowrap>
+Motion - Other-Pretrial
+ &nbsp; 
+</td>
+<td nowrap>
+
+ &nbsp; 
+</td>
+<td nowrap>
+
+ &nbsp; 
+</td>
+<td nowrap>
+ 
+ &nbsp; 
+</td>
+<td nowrap>
+Transferred
+ &nbsp; 
+</td>
+</tr>
+
+</table>
+
+<TABLE BORDER="0" width="80%" align="center">
+<tr>
+ <td nowrap><span id="fontBold"> Date&nbsp;Ordered&nbsp;To&nbsp;Mediation:</span>&nbsp;
+     
+ </td>
+</tr>
+</table>
+
+
+</html>
+
+    <tr>
+    <td>
+    
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+ 
+
+
+<html>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="IBM WebSphere Studio">
+<LINK href="FinalDispositionStyle.css" rel="stylesheet" type="text/css"> 
+</HEAD>
+
+<TABLE BORDER="0" width="80%" align="center"> 
+<tr>
+<td height="20">
+ <div id= headerDisplay> Final Disposition</div>
+ <br/>
+</td>
+</tr>
+
+<table width="80%"  align="center">
+ <tr>
+ <td nowrap>
+ <UL>
+ <LI><span id= fontBold>Judgment:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Other</LI>
+ <LI><span id= fontBold>Final&nbsp;Order&nbsp;Date:</span>&nbsp;&nbsp;&nbsp;08/09/10</LI>
+ <LI><span id= fontBold>Appealed&nbsp;Date:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;</LI>
+ <LI><span id= fontBold>Concluded&nbsp;By:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Other</LI>
+ </UL>
+ </td> 
+ </tr> 
+</table>
+</table>
+</html>
+      
+    </td>
+    </tr>   
+    <tr>
+    <td>   
+        
+    </td>
+    </tr>
+  </table> 
+  </td>
+  </tr>   
+  <tr>
+ <td id=tdblue height=50 align="center">
+ 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+
+
+
+
+
+
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="IBM WebSphere Studio">
+
+</HEAD>
+<BODY>
+
+
+  
+<table cellspacing="5">
+	<tr>
+		<td>
+		<form action="Search.do" method="post">
+			<INPUT type="hidden"name="submitValue" value="SA">
+			 
+			<input type="submit" value="  Name List " onclick="javascript:submitCheck()" disabled="disabled">
+			</div>
+			
+		</form>
+		</td>
+
+		<td>
+
+		<form action="CaseDetail.do" method="post">
+			<INPUT type="hidden" name="submitValue" value="P">
+			<INPUT type="hidden" name="courtId" value="540"> 
+			<INPUT type="hidden" name="categorySelected" value="Civil"> 
+			<INPUT type="hidden" name="caseStatus" value='A'>
+			
+			  <INPUT type="hidden" name= "caseNo" value='CL09000293-00'>
+		   
+ 		<div id="pleadings">
+ 			<input type="submit" value="  Pleadings/Orders " onclick="javascript:submitCheck()">
+		</div>
+		</form>
+		</td>
+		<td>
+
+		<form action="CaseDetail.do" method="post">
+			<INPUT type="hidden"name="submitValue" value="S">
+			<INPUT type="hidden" name="page" value=AllCase> 
+			<INPUT type="hidden" name="courtId"	value="540" >
+			<INPUT type="hidden" name="categorySelected" value="Civil">
+			<INPUT type="hidden" name="caseStatus" value='A'>
+			
+			  <INPUT type="hidden" name= "caseNo" value='CL09000293-00'>
+		   
+		 
+			<div id="services">
+			  <input type="submit" value="  Services " onclick="javascript:submitCheck()">
+			</div>
+		 
+		</form>
+		</td>
+
+		<td>
+ <div id= "nameList"> 
+ <form action= "MainMenu.do" method= "POST"> 
+    <INPUT type= "hidden" name= "courtId" value="540"> 
+ <div id= "mainmenu">
+   <INPUT type="submit" value="Main Menu" onclick="javascript:showMainMenu()">
+ </div>
+ </form>
+ </div>
+ </td>
+ 
+ <td>
+ <form id= "nextForm" action= "Logoff.do" method= "POST">
+   <INPUT type="hidden" name= "searchType">
+ <div id= "logoff">
+   <INPUT type="submit" value="Logoff" onclick="javascript:submitCheck()">
+ </div>
+ </form>
+ </td>	
+
+	</tr>
+</table>
+</BODY>
+</HTML>
+	
+ </td>
+ </tr>
+ </table>	
+ </table>				
+ 
+<div class="labelBuildNumber">Build #: 3.6.32.6</div>
+
+</table> 
+</body>
+</html>
