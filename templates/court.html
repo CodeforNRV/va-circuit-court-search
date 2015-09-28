@@ -1,25 +1,3 @@
-<h4>Criminal</h4>
-{% for case in court.criminalCases %}
-    <div class="row">
-        <div class="col-xs-6">
-            <div>{{ case.name }}</div>
-            <div class="text-muted"><small>{{ case.caseNumber }}</small></div>
-        </div>
-        <div class="col-xs-6 text-right">
-            {% if 'link' in case %}
-                <div><a href="{{ case.link }}" target="_blank">Details</a></div>
-                <div class="text-muted"><small>{{ case.status }}</small></div>
-            {% else %}
-                <div>{{ case.charge }}</div>
-                <div class="text-muted"><small>{{ case.status }} ({{ case.date }})</small></div>
-            {% endif %}
-        </div>
-    </div>
-{% else %}
-    <div class="text-muted">No criminal cases found</div>
-{% endfor %}
-
-<h4>Civil</h4>
 {% for case in court.civilCases %}
     <div class="row">
         <div class="col-xs-6">
@@ -34,6 +12,10 @@
                 {% endif %}
             </div>
             <div class="text-muted"><small>{{ case.status }}</small></div>
+        </div>
+        <div class="col-sm-10 col-sm-offset-2 sub-cases {{ case.caseNumber }}">
+            <div class="info"></div>
+            <div class="results"></div>
         </div>
     </div>
 {% else %}

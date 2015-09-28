@@ -17,15 +17,19 @@
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <style>
-    .row { 
+    .row {
         padding: 5px;
     }
-    
+
     .row:nth-child(even) {
         background: #eee;
     }
-    
-    .navbar { 
+
+    .sub-case {
+        margin: 5px;
+    }
+
+    .navbar {
         border-radius: 0px;
     }
 
@@ -51,12 +55,12 @@
             <button id="stop-search-button" class="btn btn-danger">Stop Search</button>
         </div>
     </div>
-    
+
     {% for court in data.courts %}
         <div id="{{ court.id }}">
             <h2>{{ court.name }}</h2>
             <div class="search-result">
-		{% if 'criminalCases' in court %}
+		{% if 'civilCases' in court %}
 			{% include "court.html" %}
 		{% else %}
                 	<div class="text-muted search-pending"><i class="fa fa-spinner fa-spin"></i> Loading</div>
@@ -78,54 +82,124 @@
     var courts = {{ data.courts|tojson|safe }};
     var courtCount = courts.length;
     var stopSearch = false;
-    
+
     $('#countTotal').text(courtCount);
-    
+
     $('#stop-search-button').on('click', function() {
        stopSearch = true;
-       $(this).prop("disabled", true); 
+       $(this).prop("disabled", true);
        $('.search-pending').html('Canceled');
     });
-    
-    function courtSearch() {
+
+    function courtSearch(delaySearch) {
         if(courts.length < 1 || stopSearch) {
             $("#search-active").hide();
             return;
         }
-        
+
         court = courts[0];
         courts.shift();
-        
+
         $('#countSearched').text(courtCount - courts.length);
-        
-	if('criminalCases' in court) {
-		courtSearch();
-	} else {
+
+    	if('civilCases' in court) {
+    		courtSearch();
+    	} else {
 	        setTimeout(function() {
 	            $.get('/search/' + name + '/court/' + court.fullName, function(data) {
+                    console.log(data);
 	                var selector = '#' + court.id + ' .search-result';
-	                $(selector).html(data);
+	                $(selector).html(data.html);
+                    var delayNextSearch = !data.cached;
+                    searchOtherParty(data.civilCases, selector, function() {
+                        courtSearch(delayNextSearch);
+                    });
 	            })
 	            .fail(function() {
 	                var retryFunction = "retry('" + court.fullName + "','" + court.id + "')";
 	                $('#' + court.id + ' .search-result').html('<div>Error</div><div><button class="btn" onclick="' + retryFunction + '">Retry</button></div>');
+                    courtSearch(true);
 	            })
-	            .always(function() {
-	                courtSearch();
-	            })
-	        }, 1000);
-	}
+	        }, delaySearch ? 1000 : 0);
+    	}
     }
-    
+
     function retry(fullName, id) {
         $('#' + id + ' .search-result').html('<div class="text-muted"><i class="fa fa-spinner fa-spin"></i> Loading</div>');
         courts.unshift({'fullName': fullName, 'id': id});
-        
+
         if(courts.length == 1 || stopSearch) {
             stopSearch = false;
             courtSearch();
         }
     }
-    
+
+    var allCourts = {{ data.courts|tojson|safe }};
+    var namesSearched = [];
+
+    function searchOtherParty(civilCases, htmlSelector, callback) {
+        var namesToSearch = [];
+        for(var i=0; i<civilCases.length; i++) {
+            var curCase = civilCases[i];
+            if(curCase.Defendant.indexOf(name) == 0) {
+                var plaintiffNameParts = curCase.Plaintiff.split(' ');
+                if(plaintiffNameParts.length > 1 && plaintiffNameParts[0].slice(-1) == "," && curCase.Plaintiff.indexOf('COUNTY OF') == -1) {
+                    if(namesSearched.indexOf(curCase.Plaintiff) == -1) {
+                        var platiffName = plaintiffNameParts[0] + ' ' + plaintiffNameParts[1];
+                        if(!platiffName.slice(-1).match(/[a-z]/i)) {
+                            platiffName = platiffName.slice(0, -1);
+                        }
+                        console.log('Search ' + platiffName);
+                        namesToSearch.push({
+                            name: platiffName,
+                            selector: htmlSelector + ' .' + curCase.caseNumber
+                        });
+                        namesSearched.push(platiffName);
+                    }
+                }
+            }
+        }
+        courtSearch2(namesToSearch, allCourts, true, callback);
+    }
+
+    function courtSearch2(namesToSearch, remainingCourts, delaySearch, callback) {
+        if(namesToSearch.length < 1 || stopSearch) {
+            callback();
+            return;
+        }
+
+        if(remainingCourts.length < 1) {
+            courtSearch2(namesToSearch.slice(1), allCourts, true, callback);
+            return;
+        }
+
+        setTimeout(function() {
+            $.get('/search/' + namesToSearch[0].name + '/court/' + remainingCourts[0].fullName, function(data) {
+                console.log(data);
+                if(remainingCourts.length > 1) {
+                    $(namesToSearch[0].selector + ' .info').html((remainingCourts.length - 1) + ' left to search');
+                } else {
+                    $(namesToSearch[0].selector + ' .info').html('');
+                }
+                for(var i=0; i<data.civilCases.length; i++) {
+                    var html = '<div class="sub-case"><div>';
+                    html += data.name;
+                    html += ' <small class="text-muted">';
+                    html += data.civilCases[i].caseNumber;
+                    html += '</small></div><div>';
+                    html += data.civilCases[i].Plaintiff;
+                    html += '   v   ';
+                    html += data.civilCases[i].Defendant;
+                    html += '</div></div>';
+                    $(namesToSearch[0].selector + ' .results').append(html);
+                }
+                courtSearch2(namesToSearch, remainingCourts.slice(1), !data.cached, callback);
+            })
+            .fail(function() {
+                courtSearch2(namesToSearch, remainingCourts.slice(1), true, callback);
+            })
+        }, delaySearch ? 1000 : 0);
+    }
+
     courtSearch();
 </script>
