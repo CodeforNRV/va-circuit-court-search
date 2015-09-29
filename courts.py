@@ -160,6 +160,44 @@ def lookupCases(opener, name, court, division):
         done = getCases(BeautifulSoup(html), name, cases)
     return cases
 
+@app.route("/case/<caseNumber>/court/<path:court>")
+def case_details(caseNumber, court):
+    if 'cookies' not in session:
+        return "Error. Please reload the page."
+
+    courtId = court[:3]
+    courtSearch = {'name': court[5:], 'id': courtId}
+
+    db = pymongo.Connection(os.environ['MONGO_URI'])['court-search-temp']
+    case_details = db['detailed_cases'].find_one({'court': court, 'caseNumber': caseNumber})
+    if case_details is not None:
+        print 'Found cached search'
+        case_details['cached'] = True
+    else:
+        cookieJar = cookielib.CookieJar()
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookieJar))
+        opener.addheaders = [('User-Agent', user_agent)]
+
+        for cookie in pickle.loads(session['cookies']):
+            cookieJar.set_cookie(cookie)
+        if 'courtId' not in session or session['courtId'] != courtId:
+            data = urllib.urlencode({
+                'courtId': courtId,
+                'courtType': 'C',
+                'caseType': 'ALL',
+                'testdos': False,
+                'sessionCreate': 'NEW',
+                'whichsystem': court})
+            place_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/MainMenu.do"
+            opener.open(place_url, data)
+            session['courtId'] = courtId
+        case_details = {'court': court, 'caseNumber': caseNumber}
+        get_case_details(opener, case_details)
+        print 'Caching Search'
+        db['detailed_cases'].insert(case_details)
+    case_details.pop('_id', None)
+    return flask.jsonify(**case_details)
+
 @app.route("/search/<name>/court/<path:court>")
 def searchCourt(name, court):
     if 'cookies' not in session:
@@ -181,35 +219,20 @@ def searchCourt(name, court):
 
         for cookie in pickle.loads(session['cookies']):
             cookieJar.set_cookie(cookie)
-
-        data = urllib.urlencode({
-            'courtId': courtId,
-            'courtType': 'C',
-            'caseType': 'ALL',
-            'testdos': False,
-            'sessionCreate': 'NEW',
-            'whichsystem': court})
-        place_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/MainMenu.do"
-        opener.open(place_url, data)
+        if 'courtId' not in session or session['courtId'] != courtId:
+            data = urllib.urlencode({
+                'courtId': courtId,
+                'courtType': 'C',
+                'caseType': 'ALL',
+                'testdos': False,
+                'sessionCreate': 'NEW',
+                'whichsystem': court})
+            place_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/MainMenu.do"
+            opener.open(place_url, data)
+            session['courtId'] = courtId
         courtSearch['civilCases'] = lookupCases(opener, name.upper(),
                                                 courtId, 'CIVIL')
-
-    if cases is None:
         print 'Caching search'
-        #for civil_case in courtSearch['civilCases']:
-        #    if civil_case['Plaintiff'].startswith(name.upper()):
-        #        continue
-        #    if db['civil_cases'].find_one({'court': court, 'caseNumber': civil_case['caseNumber']}) is not None:
-        #        continue
-        #    civil_case['court'] = court
-        #    civil_case['search_term'] = name.upper()
-        #    print civil_case['caseNumber']
-        #    try:
-        #        get_case_details(opener, civil_case)
-        #        sleep(1)
-        #    except:
-        #        print 'ERROR GETTING CASE DETAILS!', sys.exc_info()
-        #    db['civil_cases'].insert(civil_case)
         db['cases'].insert({
             'name': name,
             'court': court,
@@ -219,6 +242,13 @@ def searchCourt(name, court):
     courtSearch['html'] = render_template('court.html', court=courtSearch)
     return flask.jsonify(**courtSearch)
 
+@app.route("/search/<name>/courts")
+def searchCourts(name):
+    if 'cookies' not in session:
+        return "Error. Please reload the page."
+    db = pymongo.Connection(os.environ['MONGO_URI'])['court-search-temp']
+    cases = list(db['cases'].find({'name': name}))
+    return flask.jsonify(**cases)
 
 @app.route("/search/<name>")
 def search(name):
