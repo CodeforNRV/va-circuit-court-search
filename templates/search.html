@@ -36,6 +36,10 @@
     .footer {
         margin-top: 50px;
     }
+
+    .ignore-case {
+        font-size: 8px;
+    }
 </style>
 <nav class="navbar navbar-inverse" role="navigation">
     <div class="container-fluid">
@@ -135,33 +139,43 @@
     }
 
     var allCourts = {{ data.courts|tojson|safe }};
-    var namesSearched = [];
 
     function searchOtherParty(court, civilCases, htmlSelector, callback) {
         var namesToSearch = [];
+        var namesSearched = [];
         var caseDetailsToCollect = [];
+        var caseDetailsCollected = [];
         for(var i=0; i<civilCases.length; i++) {
             var curCase = civilCases[i];
+            var curCaseUsed = false;
             if(curCase.Defendant.indexOf(name) == 0) {
                 var plaintiffNameParts = curCase.Plaintiff.split(' ');
                 if(plaintiffNameParts.length > 1 && plaintiffNameParts[0].slice(-1) == "," && curCase.Plaintiff.indexOf('COUNTY OF') == -1) {
-                    caseDetailsToCollect.push({
-                        court: court,
-                        caseNumber: curCase.caseNumber
-                    });
+                    curCaseUsed = true;
+                    if(caseDetailsCollected.indexOf(curCase.caseNumber) === -1) {
+                        caseDetailsCollected.push(curCase.caseNumber);
+                        caseDetailsToCollect.push({
+                            court: court,
+                            caseNumber: curCase.caseNumber
+                        });
+                    }
                     var platiffName = plaintiffNameParts[0] + ' ' + plaintiffNameParts[1];
                     if(!platiffName.slice(-1).match(/[a-z]/i)) {
                         platiffName = platiffName.slice(0, -1);
                     }
-                    if(namesSearched.indexOf(platiffName) == -1) {
+                    if(namesSearched.indexOf(platiffName) === -1) {
                         console.log('Search ' + platiffName);
                         namesToSearch.push({
                             name: platiffName,
-                            selector: htmlSelector + ' .' + curCase.caseNumber
+                            court: court,
+                            selector: htmlSelector + ' .sub-cases-' + curCase.caseNumber
                         });
                         namesSearched.push(platiffName);
                     }
                 }
+            }
+            if(!curCaseUsed) {
+                $(htmlSelector + ' .case-' + curCase.caseNumber).addClass('ignore-case');
             }
         }
 
@@ -189,7 +203,11 @@
         }, delaySearch ? 1000 : 0);
     }
 
+    var curSubCaseData = null;
+
     function courtSearch2(namesToSearch, remainingCourts, delaySearch, callback) {
+        console.log(namesToSearch.length + ' names left. ' + remainingCourts.length + ' courts left.');
+
         if(namesToSearch.length < 1 || stopSearch) {
             callback();
             return;
@@ -200,32 +218,73 @@
             return;
         }
 
-        setTimeout(function() {
-            $.get('/search/' + namesToSearch[0].name + '/court/' + remainingCourts[0].fullName, function(data) {
+        if(!curSubCaseData || curSubCaseData.name !== namesToSearch[0].name) {
+            $.get('/search/' + namesToSearch[0].name + '/courts', function(data) {
                 console.log(data);
-                if(remainingCourts.length > 1) {
-                    $(namesToSearch[0].selector + ' .info').html((remainingCourts.length - 1) + ' left to search');
-                } else {
-                    $(namesToSearch[0].selector + ' .info').html('');
-                }
-                for(var i=0; i<data.civilCases.length; i++) {
-                    var html = '<div class="sub-case"><div>';
-                    html += data.name;
-                    html += ' <small class="text-muted">';
-                    html += data.civilCases[i].caseNumber;
-                    html += '</small></div><div>';
-                    html += data.civilCases[i].Plaintiff;
-                    html += '   v   ';
-                    html += data.civilCases[i].Defendant;
-                    html += '</div></div>';
-                    $(namesToSearch[0].selector + ' .results').append(html);
-                }
-                courtSearch2(namesToSearch, remainingCourts.slice(1), !data.cached, callback);
+                curSubCaseData = data;
+                courtSearch2(namesToSearch, remainingCourts, delaySearch, callback);
             })
             .fail(function() {
-                courtSearch2(namesToSearch, remainingCourts.slice(1), true, callback);
-            })
-        }, delaySearch ? 1000 : 0);
+                curSubCaseData = {name: namesToSearch[0].name, searches: null}
+                courtSearch2(namesToSearch, remainingCourts, delaySearch, callback);
+            });
+            return;
+        }
+
+        if(curSubCaseData.searches && remainingCourts[0].fullName in curSubCaseData.searches) {
+            appendSubCaseHtml(curSubCaseData.searches[remainingCourts[0].fullName], namesToSearch, remainingCourts);
+            courtSearch2(namesToSearch, remainingCourts.slice(1), false, callback);
+        } else {
+            setTimeout(function() {
+                $.get('/search/' + namesToSearch[0].name + '/court/' + remainingCourts[0].fullName, function(data) {
+                    console.log(data);
+                    appendSubCaseHtml(data, namesToSearch, remainingCourts);
+                    courtSearch2(namesToSearch, remainingCourts.slice(1), !data.cached, callback);
+                })
+                .fail(function() {
+                    courtSearch2(namesToSearch, remainingCourts.slice(1), true, callback);
+                });
+            }, delaySearch ? 1000 : 0);
+        }
+    }
+
+    function appendSubCaseHtml(data, namesToSearch, remainingCourts) {
+        if(remainingCourts.length > 1) {
+            $(namesToSearch[0].selector + ' .info').html((remainingCourts.length - 1) + ' left to search');
+        } else {
+            $(namesToSearch[0].selector + ' .info').html('');
+        }
+        for(var i=0; i<data.civilCases.length; i++) {
+            var mute = false;
+            var sameCourt = false;
+            if(data.civilCases[i].Plaintiff.indexOf(data.name) !== 0) {
+                mute = true;
+            }
+            var plaintiffNameParts = data.civilCases[i].Plaintiff.split(' ');
+            var platiffName = plaintiffNameParts[0] + ' ' + plaintiffNameParts[1];
+            if(!platiffName.slice(-1).match(/[a-z]/i)) {
+                platiffName = platiffName.slice(0, -1);
+            }
+            if(platiffName != data.name) {
+                mute = true;
+            }
+            if(namesToSearch[0].court.fullName == data.court) {
+                sameCourt = true;
+            }
+            var html = '<div class="sub-case';
+            if(mute) html += ' ignore-case text-muted';
+            if(sameCourt) html += ' text-muted';
+            html += '"><div>';
+            html += data.court.slice(5);
+            html += ' <small class="text-muted">';
+            html += data.civilCases[i].caseNumber;
+            html += '</small></div><div>';
+            html += data.civilCases[i].Plaintiff;
+            html += ' v ';
+            html += data.civilCases[i].Defendant;
+            html += '</div></div>';
+            $(namesToSearch[0].selector + ' .results').append(html);
+        }
     }
 
     courtSearch();

@@ -8,18 +8,40 @@ import pygal
 import locale
 import re
 import sys
-import flask
+import json
+import datetime
 from bson.son import SON
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
 from flask import Flask, session, render_template, request
 from pprint import pprint
 from time import sleep
+from bson.objectid import ObjectId
+from werkzeug import Response
 
 app = Flask(__name__)
 
 user_agent = u"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; " + \
     u"rv:1.9.2.11) Gecko/20101012 Firefox/3.6.11"
+
+class MongoJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (datetime.datetime, datetime.date)):
+            return obj.isoformat()
+        elif isinstance(obj, ObjectId):
+            return unicode(obj)
+        return json.JSONEncoder.default(self, obj)
+
+def jsonify(*args, **kwargs):
+    """ jsonify with support for MongoDB ObjectId
+    """
+    return Response(json.dumps(dict(*args, **kwargs), cls=MongoJsonEncoder), mimetype='application/json')
+
+def handle_parse_exception(soup):
+    print '\nException parsing HTML.', \
+          'Probably contained something unexpected.', \
+          'Check unexpected_output.html'
+    with open('unexpected_output.html', 'wb') as output:
+        output.write(soup.prettify().encode('UTF-8'))
 
 def get_data_from_table(case, table):
     table_cells = table.find_all('td')
@@ -48,7 +70,7 @@ def get_hearings_from_table(case, table):
             if val != '':
                 hearing[col_names[i]] = val
         hearing_dt = hearing['Date'] + hearing['Time']
-        hearing['Datetime'] = datetime.strptime(hearing_dt, "%m/%d/%y%I:%M%p")
+        hearing['Datetime'] = datetime.datetime.strptime(hearing_dt, "%m/%d/%y%I:%M%p")
         case['Hearings'].append(hearing)
 
 def get_disposition_from_table(case, table):
@@ -62,7 +84,7 @@ def get_disposition_from_table(case, table):
         case[name] = value
 
 def value_to_datetime(case, name):
-    case[name] = datetime.strptime(case[name], "%m/%d/%y")
+    case[name] = datetime.datetime.strptime(case[name], "%m/%d/%y")
 
 def get_case_details(opener, case):
     data = urllib.urlencode({
@@ -70,59 +92,68 @@ def get_case_details(opener, case):
         'caseNo':case['caseNumber'],
         'categorySelected':'CIVIL'
     })
+    print data
     url = u"http://ewsocis1.courts.state.va.us/CJISWeb/CaseDetail.do"
     html = BeautifulSoup(opener.open(url, data).read())
-    tables = html.find_all('table')
-    details_table = tables[4]
-    plaintiffs_table = tables[8]
-    defendants_table = tables[10]
-    hearings_table = tables[12]
-    disposition_table = tables[14]
-    get_data_from_table(case, details_table)
-    get_names_from_table(case, plaintiffs_table, 'Plaintiffs')
-    get_names_from_table(case, defendants_table, 'Defendants')
-    get_hearings_from_table(case, hearings_table)
-    get_disposition_from_table(case, disposition_table)
-    if 'Filed' in case:
-        value_to_datetime(case, 'Filed')
+    try:
+        tables = html.find_all('table')
+        details_table = tables[4]
+        plaintiffs_table = tables[8]
+        defendants_table = tables[10]
+        hearings_table = tables[12]
+        disposition_table = tables[14]
+        get_data_from_table(case, details_table)
+        get_names_from_table(case, plaintiffs_table, 'Plaintiffs')
+        get_names_from_table(case, defendants_table, 'Defendants')
+        get_hearings_from_table(case, hearings_table)
+        get_disposition_from_table(case, disposition_table)
+        if 'Filed' in case:
+            value_to_datetime(case, 'Filed')
+    except:
+        handle_parse_exception(html)
+        raise
 
 def getCases(html, name, names):
-    for row in html.find(class_="nameList").find_all('tr'):
-        cols = row.find_all('td')
-        if len(cols) > 4:
-            if name not in cols[1].string:
-                return True
-            names.append({
-                'caseNumber': cols[0].span.a.string.strip(),
-                'name': cols[1].string.strip(),
-                'charge': cols[2].string.strip(),
-                'date': cols[3].string.strip(),
-                'status': cols[4].string.strip()
-            })
-        elif len(cols) > 3:
-            if name not in cols[1].get_text() and name not in \
-                    cols[2].get_text():
-                return True
-            first_party = cols[1].get_text() \
-                                 .replace('\t', '') \
-                                 .replace('\r', '') \
-                                 .replace('\n', '') \
-                                 .split(':')
-            second_party = cols[2].get_text() \
-                                  .replace('\t', '') \
-                                  .replace('\r', '') \
-                                  .replace('\n', '') \
-                                  .split(':')
-            names.append({
-                'caseNumber': cols[0].span.a.string.strip(),
-                'name': cols[1].get_text(),
-                'otherName': cols[2].get_text(),
-                first_party[0]: first_party[1].strip(),
-                second_party[0]: second_party[1].strip(),
-                'status': cols[3].string.strip()
-            })
-    return False
-
+    try:
+        for row in html.find(class_="nameList").find_all('tr'):
+            cols = row.find_all('td')
+            if len(cols) > 4:
+                if name not in cols[1].string:
+                    return True
+                names.append({
+                    'caseNumber': cols[0].span.a.string.strip(),
+                    'name': cols[1].string.strip(),
+                    'charge': cols[2].string.strip(),
+                    'date': cols[3].string.strip(),
+                    'status': cols[4].string.strip()
+                })
+            elif len(cols) > 3:
+                if name not in cols[1].get_text() and name not in \
+                        cols[2].get_text():
+                    return True
+                first_party = cols[1].get_text() \
+                                     .replace('\t', '') \
+                                     .replace('\r', '') \
+                                     .replace('\n', '') \
+                                     .split(':')
+                second_party = cols[2].get_text() \
+                                      .replace('\t', '') \
+                                      .replace('\r', '') \
+                                      .replace('\n', '') \
+                                      .split(':')
+                names.append({
+                    'caseNumber': cols[0].span.a.string.strip(),
+                    'name': cols[1].get_text(),
+                    'otherName': cols[2].get_text(),
+                    first_party[0]: first_party[1].strip(),
+                    second_party[0]: second_party[1].strip(),
+                    'status': cols[3].string.strip()
+                })
+        return False
+    except:
+        print html
+        handle_parse_exception(html)
+        raise
 
 def lookupCases(opener, name, court, division):
     cases = []
@@ -134,6 +165,8 @@ def lookupCases(opener, name, court, division):
     cases_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/Search.do"
     searchResults = opener.open(cases_url, data)
     html = searchResults.read()
+    if 'Search returned no records' in html:
+        return cases
     done = getCases(BeautifulSoup(html), name, cases)
 
     data = urllib.urlencode({
@@ -164,10 +197,7 @@ def lookupCases(opener, name, court, division):
 def case_details(caseNumber, court):
     if 'cookies' not in session:
         return "Error. Please reload the page."
-
     courtId = court[:3]
-    courtSearch = {'name': court[5:], 'id': courtId}
-
     db = pymongo.Connection(os.environ['MONGO_URI'])['court-search-temp']
     case_details = db['detailed_cases'].find_one({'court': court, 'caseNumber': caseNumber})
     if case_details is not None:
@@ -180,23 +210,22 @@ def case_details(caseNumber, court):
 
         for cookie in pickle.loads(session['cookies']):
             cookieJar.set_cookie(cookie)
-        if 'courtId' not in session or session['courtId'] != courtId:
-            data = urllib.urlencode({
-                'courtId': courtId,
-                'courtType': 'C',
-                'caseType': 'ALL',
-                'testdos': False,
-                'sessionCreate': 'NEW',
-                'whichsystem': court})
-            place_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/MainMenu.do"
-            opener.open(place_url, data)
-            session['courtId'] = courtId
+        print 'Changing court'
+        data = urllib.urlencode({
+            'courtId': courtId,
+            'courtType': 'C',
+            'caseType': 'ALL',
+            'testdos': False,
+            'sessionCreate': 'NEW',
+            'whichsystem': court})
+        place_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/MainMenu.do"
+        opener.open(place_url, data)
+        session['courtId'] = courtId
         case_details = {'court': court, 'caseNumber': caseNumber}
         get_case_details(opener, case_details)
         print 'Caching Search'
         db['detailed_cases'].insert(case_details)
-    case_details.pop('_id', None)
-    return flask.jsonify(**case_details)
+    return jsonify(**case_details)
 
 @app.route("/search/<name>/court/<path:court>")
 def searchCourt(name, court):
@@ -219,17 +248,16 @@ def searchCourt(name, court):
 
         for cookie in pickle.loads(session['cookies']):
             cookieJar.set_cookie(cookie)
-        if 'courtId' not in session or session['courtId'] != courtId:
-            data = urllib.urlencode({
-                'courtId': courtId,
-                'courtType': 'C',
-                'caseType': 'ALL',
-                'testdos': False,
-                'sessionCreate': 'NEW',
-                'whichsystem': court})
-            place_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/MainMenu.do"
-            opener.open(place_url, data)
-            session['courtId'] = courtId
+        data = urllib.urlencode({
+            'courtId': courtId,
+            'courtType': 'C',
+            'caseType': 'ALL',
+            'testdos': False,
+            'sessionCreate': 'NEW',
+            'whichsystem': court})
+        place_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/MainMenu.do"
+        opener.open(place_url, data)
+        session['courtId'] = courtId
         courtSearch['civilCases'] = lookupCases(opener, name.upper(),
                                                 courtId, 'CIVIL')
         print 'Caching search'
@@ -237,18 +265,24 @@ def searchCourt(name, court):
             'name': name,
             'court': court,
             'civilCases': courtSearch['civilCases'],
-            'dateSaved': datetime.utcnow()
+            'dateSaved': datetime.datetime.utcnow()
         })
+    courtSearch['court'] = court
+    courtSearch['name'] = name
     courtSearch['html'] = render_template('court.html', court=courtSearch)
-    return flask.jsonify(**courtSearch)
+    return jsonify(**courtSearch)
 
 @app.route("/search/<name>/courts")
 def searchCourts(name):
-    if 'cookies' not in session:
-        return "Error. Please reload the page."
     db = pymongo.Connection(os.environ['MONGO_URI'])['court-search-temp']
-    cases = list(db['cases'].find({'name': name}))
-    return flask.jsonify(**cases)
+    result = {
+        'name': name,
+        'searches': {}
+    }
+    cases = db['cases'].find({'name': name})
+    for case in cases:
+        result['searches'][case['court']] = case
+    return jsonify(**result)
 
 @app.route("/search/<name>")
 def search(name):
@@ -271,7 +305,7 @@ def search(name):
     cases = db['cases'].find({'name': name.upper()})
     print cases
     if cases.count() == 0:
-        db['searches'].insert({'name': name.upper(), 'searchtime': datetime.utcnow()})
+        db['searches'].insert({'name': name.upper(), 'searchtime': datetime.datetime.utcnow()})
     #for case in cases:
     #    for court in data['courts']:
     #        if case['court'] == court['fullName']:
