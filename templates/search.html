@@ -40,6 +40,14 @@
     .ignore-case {
         font-size: 8px;
     }
+
+    #control-panel {
+        position: fixed;
+        top: 60px;
+        right: 10px;
+        padding: 10px;
+        background-color: lightgray;
+    }
 </style>
 <nav class="navbar navbar-inverse" role="navigation">
     <div class="container-fluid">
@@ -48,6 +56,12 @@
         </div>
     </div>
 </nav>
+
+<div id="control-panel">
+    <div>
+        <input type="checkbox" onclick="hideInvalidCases(this);"/> Hide Invalid Cases
+    </div>
+</div>
 
 <div class="container">
     <h1>Search {{ data.name }}</h1>
@@ -94,6 +108,14 @@
        $(this).prop("disabled", true);
        $('.search-pending').html('Canceled');
     });
+
+    function hideInvalidCases(checkbox) {
+        if(checkbox.checked) {
+            $('.ignore-case').hide();
+        } else {
+            $('.ignore-case').show();
+        }
+    }
 
     function courtSearch(delaySearch) {
         if(courts.length < 1 || stopSearch) {
@@ -149,7 +171,7 @@
             var curCase = civilCases[i];
             var curCaseUsed = false;
             if(curCase.Defendant.indexOf(name) == 0) {
-                var plaintiffNameParts = curCase.Plaintiff.split(' ');
+                var plaintiffNameParts = curCase.Plaintiff.split(/[\s;]+/);
                 if(plaintiffNameParts.length > 1 && plaintiffNameParts[0].slice(-1) == "," && curCase.Plaintiff.indexOf('COUNTY OF') == -1) {
                     curCaseUsed = true;
                     if(caseDetailsCollected.indexOf(curCase.caseNumber) === -1) {
@@ -260,7 +282,7 @@
             if(data.civilCases[i].Plaintiff.indexOf(data.name) !== 0) {
                 mute = true;
             }
-            var plaintiffNameParts = data.civilCases[i].Plaintiff.split(' ');
+            var plaintiffNameParts = data.civilCases[i].Plaintiff.split(/[\s;]+/);
             var platiffName = plaintiffNameParts[0] + ' ' + plaintiffNameParts[1];
             if(!platiffName.slice(-1).match(/[a-z]/i)) {
                 platiffName = platiffName.slice(0, -1);
@@ -271,6 +293,7 @@
             if(namesToSearch[0].court.fullName == data.court) {
                 sameCourt = true;
             }
+            var subCaseSelector = data.civilCases[i].caseNumber + '-sub-case-filing-type';
             var html = '<div class="sub-case';
             if(mute) html += ' ignore-case text-muted';
             if(sameCourt) html += ' text-muted';
@@ -278,13 +301,26 @@
             html += data.court.slice(5);
             html += ' <small class="text-muted">';
             html += data.civilCases[i].caseNumber;
-            html += '</small></div><div>';
+            html += '</small> <span class="';
+            html += subCaseSelector;
+            html += '"></span></div><div>';
             html += data.civilCases[i].Plaintiff;
             html += ' v ';
             html += data.civilCases[i].Defendant;
             html += '</div></div>';
             $(namesToSearch[0].selector + ' .results').append(html);
+            if(!mute && !sameCourt)
+                getSubCaseDetails(data.civilCases[i].caseNumber, data.court, namesToSearch[0].selector + ' .results .' + subCaseSelector);
         }
+    }
+
+    function getSubCaseDetails(caseNumber, court, selector) {
+        $.get('/case/' + caseNumber + '/court/' + court, function(data) {
+            console.log(data);
+            $(selector).html(data.FilingType);
+        })
+        .fail(function() {
+        });
     }
 
     courtSearch();
