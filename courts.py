@@ -94,8 +94,9 @@ def get_case_details(opener, case):
     })
     print data
     url = u"http://ewsocis1.courts.state.va.us/CJISWeb/CaseDetail.do"
-    html = BeautifulSoup(opener.open(url, data).read())
+    raw_html = opener.open(url, data).read()
     try:
+        html = BeautifulSoup(raw_html)
         tables = html.find_all('table')
         details_table = tables[4]
         plaintiffs_table = tables[8]
@@ -110,50 +111,45 @@ def get_case_details(opener, case):
         if 'Filed' in case:
             value_to_datetime(case, 'Filed')
     except:
-        handle_parse_exception(html)
+        handle_parse_exception(raw_html)
         raise
 
 def getCases(html, name, names):
-    try:
-        for row in html.find(class_="nameList").find_all('tr'):
-            cols = row.find_all('td')
-            if len(cols) > 4:
-                if name not in cols[1].string:
-                    return True
-                names.append({
-                    'caseNumber': cols[0].span.a.string.strip(),
-                    'name': cols[1].string.strip(),
-                    'charge': cols[2].string.strip(),
-                    'date': cols[3].string.strip(),
-                    'status': cols[4].string.strip()
-                })
-            elif len(cols) > 3:
-                if name not in cols[1].get_text() and name not in \
-                        cols[2].get_text():
-                    return True
-                first_party = cols[1].get_text() \
-                                     .replace('\t', '') \
-                                     .replace('\r', '') \
-                                     .replace('\n', '') \
-                                     .split(':')
-                second_party = cols[2].get_text() \
-                                      .replace('\t', '') \
-                                      .replace('\r', '') \
-                                      .replace('\n', '') \
-                                      .split(':')
-                names.append({
-                    'caseNumber': cols[0].span.a.string.strip(),
-                    'name': cols[1].get_text(),
-                    'otherName': cols[2].get_text(),
-                    first_party[0]: first_party[1].strip(),
-                    second_party[0]: second_party[1].strip(),
-                    'status': cols[3].string.strip()
-                })
-        return False
-    except:
-        print html
-        handle_parse_exception(html)
-        raise
+    for row in html.find(class_="nameList").find_all('tr'):
+        cols = row.find_all('td')
+        if len(cols) > 4:
+            if name not in cols[1].string:
+                return True
+            names.append({
+                'caseNumber': cols[0].span.a.string.strip(),
+                'name': cols[1].string.strip(),
+                'charge': cols[2].string.strip(),
+                'date': cols[3].string.strip(),
+                'status': cols[4].string.strip()
+            })
+        elif len(cols) > 3:
+            if name not in cols[1].get_text() and name not in \
+                    cols[2].get_text():
+                return True
+            first_party = cols[1].get_text() \
+                                 .replace('\t', '') \
+                                 .replace('\r', '') \
+                                 .replace('\n', '') \
+                                 .split(':')
+            second_party = cols[2].get_text() \
+                                  .replace('\t', '') \
+                                  .replace('\r', '') \
+                                  .replace('\n', '') \
+                                  .split(':')
+            names.append({
+                'caseNumber': cols[0].span.a.string.strip(),
+                'name': cols[1].get_text(),
+                'otherName': cols[2].get_text(),
+                first_party[0]: first_party[1].strip(),
+                second_party[0]: second_party[1].strip(),
+                'status': cols[3].string.strip()
+            })
+    return False
 
 def lookupCases(opener, name, court, division):
     cases = []
@@ -167,8 +163,12 @@ def lookupCases(opener, name, court, division):
     html = searchResults.read()
     if 'Search returned no records' in html:
         return cases
-    done = getCases(BeautifulSoup(html), name, cases)
-
+    done = True
+    try:
+        done = getCases(BeautifulSoup(html), name, cases)
+    except:
+        handle_parse_exception(html)
+        raise
     data = urllib.urlencode({
         'courtId': court,
         'pagelink': 'Next',
@@ -190,7 +190,11 @@ def lookupCases(opener, name, court, division):
         count += 1
         search_results = opener.open(search_url, data)
         html = search_results.read()
-        done = getCases(BeautifulSoup(html), name, cases)
+        try:
+            done = getCases(BeautifulSoup(html), name, cases)
+        except:
+            handle_parse_exception(html)
+            raise
     return cases
 
 @app.route("/case/<caseNumber>/court/<path:court>")
