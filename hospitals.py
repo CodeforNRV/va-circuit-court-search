@@ -78,7 +78,6 @@ def get_case_details(opener, case):
         'caseNo':case['caseNumber'],
         'categorySelected':'CIVIL'
     })
-    print data
     url = u"http://ewsocis1.courts.state.va.us/CJISWeb/CaseDetail.do"
     raw_html = opener.open(url, data).read()
     try:
@@ -200,22 +199,22 @@ def case_details(caseNumber, court):
 
         for cookie in pickle.loads(session['cookies']):
             cookieJar.set_cookie(cookie)
-        print 'Changing court'
-        data = urllib.urlencode({
-            'courtId': courtId,
-            'courtType': 'C',
-            'caseType': 'ALL',
-            'testdos': False,
-            'sessionCreate': 'NEW',
-            'whichsystem': court})
-        place_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/MainMenu.do"
-        opener.open(place_url, data)
+        if 'courtId' not in session or session['courtId'] != courtId:
+            print 'Changing court'
+            data = urllib.urlencode({
+                'courtId': courtId,
+                'courtType': 'C',
+                'caseType': 'ALL',
+                'testdos': False,
+                'sessionCreate': 'NEW',
+                'whichsystem': court})
+            place_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/MainMenu.do"
+            opener.open(place_url, data)
         session['courtId'] = courtId
         case_details = {'court': court, 'caseNumber': caseNumber}
         get_case_details(opener, case_details)
         print 'Caching Search'
         db['detailed_cases'].insert(case_details)
-    return jsonify(**case_details)
 
 #@app.route("/search/<name>/court/<path:court>")
 def searchCourt(name, court):
@@ -291,6 +290,15 @@ def start():
         })
     return courts
 
+def reduce_name(name):
+    if 'COUNTY OF' in name: return None
+    if 'CITY OF' in name: return None
+    name = name.replace(';',' ')
+    name_parts = name.split(' ')
+    if len(name_parts) < 2 or not name_parts[0].endswith(','): return None
+    name = ' '.join(name_parts[:2])
+    return name
+
 total_searches = 0
 
 # get started
@@ -304,6 +312,7 @@ courts_searched = [c['court'] for c in db['cases'].find({'name': name.upper()})]
 courts_to_search = set(court_full_names) - set(courts_searched)
 for court in courts_to_search:
     print court
+    sleep(1)
     searchCourt(name, court)
     total_searches += 1
     if total_searches > 100:
@@ -318,12 +327,8 @@ for search in searches:
     for case in search['civilCases']:
         plaintiff_name = case['Plaintiff']
         if plaintiff_name.startswith(name): continue
-        if 'COUNTY OF' in plaintiff_name: continue
-        if 'CITY OF' in plaintiff_name: continue
-        plaintiff_name = plaintiff_name.replace(';',' ')
-        plaintiff_name_parts = plaintiff_name.split(' ')
-        if len(plaintiff_name_parts) < 2 or not plaintiff_name_parts[0].endswith(','): continue
-        plaintiff_name = ' '.join(plaintiff_name_parts[:2])
+        plaintiff_name = reduce_name(plaintiff_name)
+        if plaintiff_name is None: continue
         names_to_search.add(plaintiff_name)
 # search the names
 for court in court_full_names:
@@ -331,10 +336,34 @@ for court in court_full_names:
     names_searched = set([c['name'] for c in db['cases'].find({'court': court}, {'name': True})])
     names_to_search_this_court = names_to_search - names_searched
     count_remaining = len(names_to_search_this_court)
+    # search only names we need
     for name in names_to_search_this_court:
         print court, name, str(count_remaining), 'left'
         count_remaining -= 1
+        sleep(1)
         searchCourt(name, court)
+        total_searches += 1
+        if total_searches > 100:
+            total_searches = 0
+            start()
+    # create a list of case numbers we have details for
+    cases_with_detail = set([c['caseNumber'] for c in db['detailed_cases'].find({'court': court}, {'caseNumber': True})])
+    # and a list of case numbers we need details for
+    cases_to_detail = set()
+    for search in db['cases'].find({'court': court, 'name': {'$in': list(names_to_search)}}):
+        for case in search['civilCases']:
+            plaintiff_name = reduce_name(case['Plaintiff'])
+            if plaintiff_name is None: continue
+            if plaintiff_name not in names_to_search: continue
+            cases_to_detail.add(case['caseNumber'])
+    # get the ones we dont have
+    cases_to_detail = cases_to_detail - cases_with_detail
+    count_remaining = len(cases_to_detail)
+    for case_number in cases_to_detail:
+        print court, case_number, str(count_remaining), 'left'
+        count_remaining -= 1
+        sleep(1)
+        case_details(case_number, court)
         total_searches += 1
         if total_searches > 100:
             total_searches = 0
