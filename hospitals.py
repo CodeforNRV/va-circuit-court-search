@@ -16,12 +16,12 @@ session = {}
 user_agent = u"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; " + \
     u"rv:1.9.2.11) Gecko/20101012 Firefox/3.6.11"
 
-def handle_parse_exception(soup):
+def handle_parse_exception(html):
     print '\nException parsing HTML.', \
           'Probably contained something unexpected.', \
           'Check unexpected_output.html'
     with open('unexpected_output.html', 'wb') as output:
-        output.write(soup.prettify().encode('UTF-8'))
+        output.write(html.encode('UTF-8'))
 
 def get_data_from_table(case, table):
     table_cells = table.find_all('td')
@@ -263,15 +263,27 @@ def searchCourts(name):
         result['searches'][case['court']] = case
     return jsonify(**result)
 
+def logoff():
+    cookieJar = cookielib.CookieJar()
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookieJar))
+    opener.addheaders = [('User-Agent', user_agent)]
+    for cookie in pickle.loads(session['cookies']):
+        cookieJar.set_cookie(cookie)
+    print 'Logging Off'
+    data = urllib.urlencode({'searchType': ''})
+    place_url = u"http://ewsocis1.courts.state.va.us/CJISWeb/Logoff.do"
+    opener.open(place_url, data).read()
+
 #@app.route("/search/<name>")
 def start(court_name_filter):
+    if 'cookies' in session:
+        logoff()
+        sleep(1)
     cookieJar = cookielib.CookieJar()
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookieJar))
     opener.addheaders = [('User-Agent', user_agent)]
     home = opener.open('http://ewsocis1.courts.state.va.us/CJISWeb/circuit.jsp')
-    if 'cookies' in session: print 'Old cookie', session['cookies']
     session['cookies'] = pickle.dumps(list(cookieJar))
-    print 'New cookie', session['cookies']
     session['courtId'] = None
 
     courts = []

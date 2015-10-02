@@ -20,7 +20,7 @@
             <div class="results">
                 {% for sub_case in case.sub_cases %}
                     <div class="sub-case">
-                        <div>{{ sub_case.court }} <small class="text-muted">{{ sub_case.case.caseNumber }}</small></div>
+                        <div>{{ sub_case.court[5:-14] }} <small class="text-muted">{{ sub_case.case.caseNumber }}</small></div>
                         <div>{{ sub_case.case.Plaintiff }} v {{ sub_case.case.Defendant }}</div>
                     </div>
                 {% endfor %}

@@ -74,6 +74,7 @@ def court(region, court):
     print 'Second level cases'
     for case in cases:
         case_name = reduce_name(case['Plaintiff'])
+        if case_name is None: continue
         case['sub_cases'] = []
         sub_searches = db['cases'].find({'name': case_name})
         for sub_search in sub_searches:
