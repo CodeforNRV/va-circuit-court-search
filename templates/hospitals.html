@@ -17,7 +17,7 @@
                 padding: 2px 10px;
             }
 
-            .case-ignore {
+            .case-ignore, .sub-case-ignore {
                 font-size: 10px;
             }
 
@@ -76,7 +76,7 @@
             function loadCourt(region, court) {
                 $('#current-court-data').html('<div class="text-muted">Loading...</div>');
                 $.get('/' + region + '/first_level/' + court, function(data) {
-                    $('#current-court-data').html(data);
+                    $('#current-court-data').html(data.html);
                     toggleIgnoredVisibility(false);
                 })
                 .fail(function() {
@@ -91,7 +91,10 @@
                 {% endif %}
             ];
 
+            var completionByCourtLoaded = false;
             function loadSearchCompletionByCourt() {
+                if(completionByCourtLoaded) return;
+                completionByCourtLoaded = true;
                 loadSearchCompletionByCourtNext(court_names);
             }
 
@@ -115,11 +118,15 @@
 
                 if(visible) {
                     $('.case-ignore').show();
-                    $('#ignore-button').html('Hide ' + $('.case-ignore').length + ' Ignored Cases');
+                    $('.sub-case-ignore').show();
+                    $('.sub-case-same-court').show();
+                    $('#ignore-button').html('Hide Hidden Cases');
                     ignoredVisibility = true;
                 } else {
                     $('.case-ignore').hide();
-                    $('#ignore-button').html('Show ' + $('.case-ignore').length + ' Ignored Cases');
+                    $('.sub-case-ignore').hide();
+                    $('.sub-case-same-court').hide();
+                    $('#ignore-button').html('Show Hidden Cases');
                     ignoredVisibility = false;
                 }
                 $('.case-row:visible:even').css({'background-color': '#eee'});

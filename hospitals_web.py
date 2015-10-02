@@ -94,24 +94,41 @@ def court(region, court):
                 break
     # load second level cases
     print 'Second level cases'
+    second_level_case_names = set()
     for case in cases:
-        case_name = reduce_name(case['Plaintiff'])
-        if case_name is None: continue
-        case['sub_cases'] = []
-        sub_searches = db['cases'].find({'name': case_name})
-        for sub_search in sub_searches:
-            for sub_case in sub_search['civilCases']:
-                case['sub_cases'].append({
-                    'court': sub_search['court'],
-                    'case': sub_case
-                })
+        case_plaintiff_name = reduce_name(case['Plaintiff'])
+        if case_plaintiff_name is None: continue
+        second_level_case_names.add(case_plaintiff_name)
     data = {
         'region': region,
         'court': court,
         'court_name': court[5:],
         'civil_cases': cases
     }
-    return render_template('hospital_cases.html', data=data)
+    html = render_template('hospital_cases.html', data=data)
+    data = {
+        'html': html,
+        'second_level_case_names': list(second_level_case_names)
+    }
+    return jsonify(**data)
+
+@app.route("/<region>/second_level/<name>")
+def second_level_search(region, name):
+    db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
+    sub_cases = []
+    sub_searches = db['cases'].find({'name': name})
+    for sub_search in sub_searches:
+        for sub_case in sub_search['civilCases']:
+            if not sub_case['Plaintiff'].startswith(name):
+                sub_case['ignore'] = True
+            if sub_search['court'] == court:
+                sub_case['same_court'] = True
+            sub_cases.append({
+                'court': sub_search['court'],
+                'court_name_short': sub_search['court'][5:-14],
+                'case': sub_case
+            })
+    return render_template('hospital_sub_cases.html', sub_cases=sub_cases)
 
 @app.route("/<region>/searches_completed/<path:court>")
 def court_searches_completed(region, court):

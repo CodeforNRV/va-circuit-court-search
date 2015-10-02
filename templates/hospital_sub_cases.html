@@ -1,0 +1,6 @@
+{% for sub_case in sub_cases|sort(attribute='court_name_short') %}
+    <div class="sub-case {% if sub_case.case.ignore %}sub-case-ignore{% endif %} {% if sub_case.case.same_court %}sub-case-same-court text-muted{% endif %}">
+        <div>{{ sub_case.court_name_short }} <small class="text-muted">{{ sub_case.case.caseNumber }}</small></div>
+        <div>{{ sub_case.case.Plaintiff }} v {{ sub_case.case.Defendant }}</div>
+    </div>
+{% endfor %}
