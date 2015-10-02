@@ -7,6 +7,7 @@
             <div>
                 <small class="text-muted">{{ case.caseNumber }}</small>
                 <span class="{{case.caseNumber}}-filing-type">{{ case.FilingType }}</span>
+                <span class="text-muted">{% if 'Filed' in case %}{{ case.Filed.strftime('%Y-%m-%d') }}{% endif %}</span>
             </div>
         </div>
         <div class="col-xs-6 text-right">

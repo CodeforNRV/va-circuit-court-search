@@ -1,6 +1,6 @@
 import os
 import pymongo
-from flask import Flask, session, render_template, request
+from flask import Flask, session, render_template, request, jsonify
 
 app = Flask(__name__)
 
@@ -57,7 +57,7 @@ def region(region):
     }
     return render_template('hospitals.html', data=data)
 
-@app.route("/<region>/<path:court>")
+@app.route("/<region>/first_level/<path:court>")
 def court(region, court):
     db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
     # get the first level searches
@@ -84,12 +84,13 @@ def court(region, court):
     detailed_cases = list(db['detailed_cases'].find({
         'court': court,
         'caseNumber': {'$in': case_numbers}},
-        ['FilingType', 'caseNumber']))
+        ['FilingType', 'Filed', 'caseNumber']))
     # fill in filing type of top level cases
     for detailed_case in detailed_cases:
         for case in cases:
             if case['caseNumber'] == detailed_case['caseNumber']:
                 case['FilingType'] = detailed_case['FilingType']
+                case['Filed'] = detailed_case['Filed']
                 break
     # load second level cases
     print 'Second level cases'
@@ -111,6 +112,25 @@ def court(region, court):
         'civil_cases': cases
     }
     return render_template('hospital_cases.html', data=data)
+
+@app.route("/<region>/searches_completed/<path:court>")
+def court_searches_completed(region, court):
+    db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
+    plaintiff_names_groups = db['second_level_plaintiff_names'].find({'name': {'$in': search_terms_by_region[region]}})
+    plaintiff_names = []
+    for group in plaintiff_names_groups:
+        plaintiff_names.extend(group['plaintiff_names'])
+    searches_to_complete = len(plaintiff_names)
+    searches_completed = db['cases'].count({'court': court, 'name': {'$in': list(plaintiff_names)}})
+    percent_searched = "{0:.0f}%".format(float(searches_completed)/float(searches_to_complete) * 100)
+    data = {
+        'region': region,
+        'court': court,
+        'percent_searched': percent_searched,
+        'searches_completed': searches_completed,
+        'searches_to_complete': searches_to_complete
+    }
+    return jsonify(**data)
 
 def should_do_second_level_search(plaintiff_name, first_level_search_name):
     if plaintiff_name.startswith(first_level_search_name): return False

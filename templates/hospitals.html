@@ -43,18 +43,20 @@
             {% endif %}
 
             {% if 'region' in data %}
-                <h4>{{ data.region }}</h4>
                 <div class="pull-right">
                     <div>{{ data.names_to_search_count }} Plaintiffs to Search</div>
-                    <div>{{ data.percent_searched }} complete ({{ data.searches_completed }} of {{ data.searches_to_complete }})</div>
+                    <div onclick="loadSearchCompletionByCourt()">
+                        {{ data.percent_searched }} complete ({{ data.searches_completed }} of {{ data.searches_to_complete }})
+                    </div>
                 </div>
+                <h4>{{ data.region }}</h4>
                 <button id="case-ignore-button" class="btn btn-link" onclick="toggleIgnoredCourtsVisibility()"></button>
                 <div class="row">
                     <div class="col-xs-3">
                         <div id="court-name-container">
                             {% for court_name, court_details in data.courts|dictsort %}
-                                <div class="court-name-row {% if court_details.case_count == 0 %}court-ignore{% endif %}" onclick="loadCourt('{{ data.region }}', '{{ court_details.full_name }}')">
-                                    <div class="pull-right">{{ court_details.case_count }}</div>
+                                <div class="court-name-row court-name-row-{{ court_details.full_name[:3] }} {% if court_details.case_count == 0 %}court-ignore{% endif %}" onclick="loadCourt('{{ data.region }}', '{{ court_details.full_name }}')">
+                                    <div class="pull-right">{{ court_details.case_count }} <span class="percent-searched"></span></div>
                                     {{ court_name }}
                                 </div>
                             {% endfor %}
@@ -73,12 +75,36 @@
         <script>
             function loadCourt(region, court) {
                 $('#current-court-data').html('<div class="text-muted">Loading...</div>');
-                $.get('/' + region + '/' + court, function(data) {
+                $.get('/' + region + '/first_level/' + court, function(data) {
                     $('#current-court-data').html(data);
                     toggleIgnoredVisibility(false);
                 })
                 .fail(function() {
                 });
+            }
+
+            var court_names = [
+                {% if 'region' in data %}
+                    {% for court_name, court_details in data.courts|dictsort %}
+                        '{{ court_details.full_name }}',
+                    {% endfor %}
+                {% endif %}
+            ];
+
+            function loadSearchCompletionByCourt() {
+                loadSearchCompletionByCourtNext(court_names);
+            }
+
+            function loadSearchCompletionByCourtNext(courts) {
+                if(courts.length === 0) {
+                    return;
+                }
+                $.get('/{{ data.region }}/searches_completed/' + courts[0], function(data) {
+                    console.log(data);
+                    console.log(courts[0].slice(0,3));
+                    $('.court-name-row-' + courts[0].slice(0,3) + ' .percent-searched').html(data.percent_searched);
+                    loadSearchCompletionByCourtNext(courts.slice(1));
+                })
             }
 
             var ignoredVisibility = true;

@@ -341,6 +341,10 @@ for search in searches:
         plaintiff_name = reduce_name(plaintiff_name)
         if plaintiff_name is None: continue
         names_to_search.add(plaintiff_name)
+# update the database with names to search so we don't have to regenerate them for web stuff
+db['second_level_plaintiff_names'].replace_one({'name': name.upper()},
+                                               {'name': name.upper(), 'plaintiff_names': list(names_to_search)},
+                                               upsert=True)
 # search the names
 for court in court_full_names:
     # create a list of names we have already searched
