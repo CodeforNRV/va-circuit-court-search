@@ -21,7 +21,7 @@ def index():
 
 @app.route("/<region>")
 def region(region):
-    db = pymongo.MongoClient(os.environ['MONGO_URI'])['court-search-temp']
+    db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
     searches = db['cases'].find({'name': {'$in': search_terms_by_region[region]}})
     courts = []
     for search in searches:
@@ -38,13 +38,19 @@ def region(region):
 
 @app.route("/<region>/<path:court>")
 def court(region, court):
-    db = pymongo.MongoClient(os.environ['MONGO_URI'])['court-search-temp']
+    db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
+    # get the first level searches
+    print 'Fetch first level searches'
     searches = db['cases'].find({'court': court, 'name': {'$in': search_terms_by_region[region]}})
+    # get cases and cases number from the searches
+    print 'First level cases'
     cases = []
     case_numbers = []
     for search in searches:
         for case in search['civilCases']:
+            # remove duplicate cases
             if case['caseNumber'] in case_numbers: continue
+            # mark cases that should be ignored becuase they don't fit the model of case we are looking for
             plaintiff_name = reduce_name(case['Plaintiff'])
             if plaintiff_name is None or case['Plaintiff'].startswith(search['name']):
                 case['ignore'] = True
@@ -52,15 +58,30 @@ def court(region, court):
                 case['ignore'] = False
                 case_numbers.append(case['caseNumber'])
             cases.append(case)
+    # get filing type of top level cases
+    print 'First level filing types'
     detailed_cases = list(db['detailed_cases'].find({
         'court': court,
         'caseNumber': {'$in': case_numbers}},
         ['FilingType', 'caseNumber']))
+    # fill in filing type of top level cases
     for detailed_case in detailed_cases:
         for case in cases:
             if case['caseNumber'] == detailed_case['caseNumber']:
                 case['FilingType'] = detailed_case['FilingType']
                 break
+    # load second level cases
+    print 'Second level cases'
+    for case in cases:
+        case_name = reduce_name(case['Plaintiff'])
+        case['sub_cases'] = []
+        sub_searches = db['cases'].find({'name': case_name})
+        for sub_search in sub_searches:
+            for sub_case in sub_search['civilCases']:
+                case['sub_cases'].append({
+                    'court': sub_search['court'],
+                    'case': sub_case
+                })
     data = {
         'region': region,
         'court': court,

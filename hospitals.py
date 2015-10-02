@@ -181,7 +181,7 @@ def case_details(caseNumber, court):
     if 'cookies' not in session:
         return "Error. Please reload the page."
     courtId = court[:3]
-    db = pymongo.MongoClient(os.environ['MONGO_URI'])['court-search-temp']
+    db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
     case_details = db['detailed_cases'].find_one({'court': court, 'caseNumber': caseNumber})
     if case_details is not None:
         print 'Found cached search'
@@ -218,7 +218,7 @@ def searchCourt(name, court):
     courtId = court[:3]
     courtSearch = {'name': court[5:], 'id': courtId}
 
-    db = pymongo.MongoClient(os.environ['MONGO_URI'])['court-search-temp']
+    db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
     cases = db['cases'].find_one({'name': name, 'court': court})
     if cases is not None:
         print 'Found cached search'
@@ -253,7 +253,7 @@ def searchCourt(name, court):
 
 #@app.route("/search/<name>/courts")
 def searchCourts(name):
-    db = pymongo.MongoClient(os.environ['MONGO_URI'])['court-search-temp']
+    db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
     result = {
         'name': name,
         'searches': {}
@@ -305,7 +305,7 @@ courts = start(court_name_filter)
 court_full_names = [c['fullName'] for c in courts]
 
 # do first level search
-db = pymongo.MongoClient(os.environ['MONGO_URI'])['court-search-temp']
+db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
 courts_searched = [c['court'] for c in db['cases'].find({'name': name.upper()})]
 courts_to_search = set(court_full_names) - set(courts_searched)
 for court in courts_to_search:
