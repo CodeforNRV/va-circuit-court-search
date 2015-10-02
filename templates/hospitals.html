@@ -17,10 +17,6 @@
                 padding: 2px 10px;
             }
 
-            .case-row:nth-child(even), .court-name-row:nth-child(even) {
-                background-color: #eee;
-            }
-
             .case-ignore {
                 font-size: 10px;
             }
@@ -48,20 +44,24 @@
 
             {% if 'region' in data %}
                 <h4>{{ data.region }}</h4>
+                <div class="pull-right">
+                    <div>{{ data.names_to_search_count }} Plaintiffs to Search</div>
+                    <div>{{ data.percent_searched }} complete ({{ data.searches_completed }} of {{ data.searches_to_complete }})</div>
+                </div>
+                <button id="case-ignore-button" class="btn btn-link" onclick="toggleIgnoredCourtsVisibility()"></button>
                 <div class="row">
                     <div class="col-xs-3">
                         <div id="court-name-container">
-                            {% for court in data.courts|sort(attribute='name')  %}
-                                <div class="court-name-row" onclick="loadCourt('{{ data.region }}', '{{ court.full_name }}')">
-                                    <div class="pull-right">{{ court.case_count }}</div>
-                                    {{ court.name }}
+                            {% for court_name, court_details in data.courts|dictsort %}
+                                <div class="court-name-row {% if court_details.case_count == 0 %}court-ignore{% endif %}" onclick="loadCourt('{{ data.region }}', '{{ court_details.full_name }}')">
+                                    <div class="pull-right">{{ court_details.case_count }}</div>
+                                    {{ court_name }}
                                 </div>
                             {% endfor %}
                         </div>
                     </div>
 
                     <div class="col-xs-9">
-                        <button id="ignore-button" class="btn btn-sm" onclick="toggleIgnoredVisibility()">Ignored</button>
                         <div id="current-court-data"></div>
                     </div>
                 </div>
@@ -89,16 +89,39 @@
 
                 if(visible) {
                     $('.case-ignore').show();
-                    $('#ignore-button').html('Hide Ignored Cases');
+                    $('#ignore-button').html('Hide ' + $('.case-ignore').length + ' Ignored Cases');
                     ignoredVisibility = true;
                 } else {
                     $('.case-ignore').hide();
-                    $('#ignore-button').html('Show Ignored Cases');
+                    $('#ignore-button').html('Show ' + $('.case-ignore').length + ' Ignored Cases');
                     ignoredVisibility = false;
                 }
                 $('.case-row:visible:even').css({'background-color': '#eee'});
                 $('.case-row:visible:odd').css({'background-color': '#fff'});
             }
+
+            var ignoredCourtVisibility = true;
+            function toggleIgnoredCourtsVisibility(visible) {
+                if(visible === undefined) {
+                    visible = !ignoredCourtVisibility;
+                }
+
+                if(visible) {
+                    $('.court-ignore').show();
+                    $('#case-ignore-button').html('Hide Courts With No Cases');
+                    ignoredCourtVisibility = true;
+                } else {
+                    $('.court-ignore').hide();
+                    $('#case-ignore-button').html('Show Courts With No Cases');
+                    ignoredCourtVisibility = false;
+                }
+                $('.court-name-row:visible:even').css({'background-color': '#eee'});
+                $('.court-name-row:visible:odd').css({'background-color': '#fff'});
+            }
+
+            (function() {
+                toggleIgnoredCourtsVisibility(false);
+            })();
         </script>
     </body>
 </html>

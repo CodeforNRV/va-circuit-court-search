@@ -1,5 +1,5 @@
+<button id="ignore-button" class="btn btn-link pull-right" onclick="toggleIgnoredVisibility()"></button>
 <h4>{{ data.court_name }}</h4>
-
 {% for case in data.civil_cases %}
     <div class="row case-row {% if case.ignore %}case-ignore{% endif %}">
         <div class="col-xs-6">

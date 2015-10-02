@@ -22,17 +22,38 @@ def index():
 @app.route("/<region>")
 def region(region):
     db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
+    # get all first level searches
     searches = db['cases'].find({'name': {'$in': search_terms_by_region[region]}})
-    courts = []
+    # organize searches into court regions, too much data to load it all at once
+    courts = {}
+    names_to_search = set()
     for search in searches:
-        courts.append({
-            'full_name': search['court'],
-            'name': search['court'][5:].replace('Circuit Court', ''),
-            'case_count': len(search['civilCases'])
-        })
+        court_name = search['court'][5:-14]
+        if court_name not in courts:
+            courts[court_name] = {
+                'full_name': search['court'],
+                'case_count': 0
+            }
+        case_numbers = set()
+        for case in search['civilCases']:
+            if not should_do_second_level_search(case['Plaintiff'], search['name']):
+                continue
+            # count names in the second level search
+            names_to_search.add(reduce_name(case['Plaintiff']))
+            # count unqiue cases in the first level search
+            case_numbers.add(case['caseNumber'])
+        courts[court_name]['case_count'] += len(case_numbers)
+    # count second level searches completed
+    searches_to_complete = len(names_to_search) * len(courts)
+    searches_completed = db['cases'].count({'name': {'$in': list(names_to_search)}})
+    percent_searched = "{0:.0f}%".format(float(searches_completed)/float(searches_to_complete) * 100)
     data = {
         'region': region,
-        'courts': courts
+        'courts': courts,
+        'names_to_search_count': len(names_to_search),
+        'percent_searched': percent_searched,
+        'searches_completed': searches_completed,
+        'searches_to_complete': searches_to_complete
     }
     return render_template('hospitals.html', data=data)
 
@@ -90,6 +111,12 @@ def court(region, court):
         'civil_cases': cases
     }
     return render_template('hospital_cases.html', data=data)
+
+def should_do_second_level_search(plaintiff_name, first_level_search_name):
+    if plaintiff_name.startswith(first_level_search_name): return False
+    plaintiff_name = reduce_name(plaintiff_name)
+    if plaintiff_name is None: return False
+    return True
 
 def reduce_name(name):
     if 'COUNTY OF' in name: return None
