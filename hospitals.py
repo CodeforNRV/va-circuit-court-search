@@ -270,7 +270,7 @@ def searchCourts(name):
     return jsonify(**result)
 
 #@app.route("/search/<name>")
-def start():
+def start(court_name_filter):
     cookieJar = cookielib.CookieJar()
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookieJar))
     opener.addheaders = [('User-Agent', user_agent)]
@@ -283,6 +283,7 @@ def start():
     courts = []
     html = BeautifulSoup(home.read())
     for option in html.find_all('option'):
+        if court_name_filter is not None and court_name_filter not in option['value'].upper(): continue
         courts.append({
             'fullName': option['value'],
             'id': option['value'][:3],
@@ -303,7 +304,10 @@ total_searches = 0
 
 # get started
 name = sys.argv[1].upper()
-courts = start()
+court_name_filter = None
+if len(sys.argv) > 2:
+    court_name_filter = sys.argv[2].upper()
+courts = start(court_name_filter)
 court_full_names = [c['fullName'] for c in courts]
 
 # do first level search

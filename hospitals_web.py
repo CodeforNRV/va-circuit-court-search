@@ -41,19 +41,20 @@ def court(region, court):
     db = pymongo.MongoClient(os.environ['MONGO_URI'])['court-search-temp']
     searches = db['cases'].find({'court': court, 'name': {'$in': search_terms_by_region[region]}})
     cases = []
-    case_numbers = set()
+    case_numbers = []
     for search in searches:
         for case in search['civilCases']:
+            if case['caseNumber'] in case_numbers: continue
             plaintiff_name = reduce_name(case['Plaintiff'])
             if plaintiff_name is None or case['Plaintiff'].startswith(search['name']):
                 case['ignore'] = True
             else:
                 case['ignore'] = False
-                case_numbers.add(case['caseNumber'])
+                case_numbers.append(case['caseNumber'])
             cases.append(case)
     detailed_cases = list(db['detailed_cases'].find({
         'court': court,
-        'caseNumber': {'$in': list(case_numbers)}},
+        'caseNumber': {'$in': case_numbers}},
         ['FilingType', 'caseNumber']))
     for detailed_case in detailed_cases:
         for case in cases:

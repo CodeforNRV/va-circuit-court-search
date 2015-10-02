@@ -79,7 +79,7 @@
 
             var ignoredVisibility = true;
             function toggleIgnoredVisibility(visible) {
-                if(!visible) {
+                if(visible === undefined) {
                     visible = !ignoredVisibility;
                 }
 
