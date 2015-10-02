@@ -315,7 +315,7 @@ for court in courts_to_search:
     total_searches += 1
     if total_searches > 100:
         total_searches = 0
-        start()
+        start(court_name_filter)
 
 # do second level search
 # look at first level and find names to search second level
@@ -343,7 +343,7 @@ for court in court_full_names:
         total_searches += 1
         if total_searches > 100:
             total_searches = 0
-            start()
+            start(court_name_filter)
     # create a list of case numbers we have details for
     cases_with_detail = set([c['caseNumber'] for c in db['detailed_cases'].find({'court': court}, {'caseNumber': True})])
     # and a list of case numbers we need details for
@@ -365,4 +365,4 @@ for court in court_full_names:
         total_searches += 1
         if total_searches > 100:
             total_searches = 0
-            start()
+            start(court_name_filter)
