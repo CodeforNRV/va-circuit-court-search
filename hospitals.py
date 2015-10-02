@@ -4,19 +4,13 @@ import urllib2
 import os
 import pickle
 import pymongo
-import pygal
 import locale
 import re
 import sys
 import json
 import datetime
-from bson.son import SON
 from bs4 import BeautifulSoup
-from flask import Flask, session, render_template, request
-from pprint import pprint
 from time import sleep
-from bson.objectid import ObjectId
-from werkzeug import Response
 
 session = {}
 user_agent = u"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; " + \
