@@ -1,1 +1,1 @@
-web: python courts.py
+web: gunicorn hospitals_web:app --log-file=-
