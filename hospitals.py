@@ -330,9 +330,9 @@ for court in courts_to_search:
         total_searches = 0
         start(court_name_filter)
 
-# do second level search
 # look at first level and find names to search second level
 names_to_search = set()
+first_level_cases_to_detail = {}
 searches = db['cases'].find({'name': name.upper()})
 for search in searches:
     for case in search['civilCases']:
@@ -341,10 +341,29 @@ for search in searches:
         plaintiff_name = reduce_name(plaintiff_name)
         if plaintiff_name is None: continue
         names_to_search.add(plaintiff_name)
+        if search['court'] not in first_level_cases_to_detail:
+            first_level_cases_to_detail[search['court']] = set()
+        first_level_cases_to_detail[search['court']].add(case['caseNumber'])
 # update the database with names to search so we don't have to regenerate them for web stuff
 db['second_level_plaintiff_names'].replace_one({'name': name.upper()},
                                                {'name': name.upper(), 'plaintiff_names': list(names_to_search)},
                                                upsert=True)
+# get first level case details
+for court, cases_to_detail in first_level_cases_to_detail.iteritems():
+    cases_with_detail = set([c['caseNumber'] for c in db['detailed_cases'].find({'court': court}, {'caseNumber': True})])
+    cases_to_detail = cases_to_detail - cases_with_detail
+    count_remaining = len(cases_to_detail)
+    for case_number in cases_to_detail:
+        print court, case_number, str(count_remaining), 'left'
+        sys.stdout.flush()
+        count_remaining -= 1
+        sleep(1)
+        case_details(case_number, court)
+        total_searches += 1
+        if total_searches > 100:
+            total_searches = 0
+            start(court_name_filter)
+# do second level search
 # search the names
 for court in court_full_names:
     # create a list of names we have already searched
