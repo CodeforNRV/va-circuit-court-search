@@ -310,6 +310,7 @@ courts_searched = [c['court'] for c in db['cases'].find({'name': name.upper()})]
 courts_to_search = set(court_full_names) - set(courts_searched)
 for court in courts_to_search:
     print court
+    sys.stdout.flush()
     sleep(1)
     searchCourt(name, court)
     total_searches += 1
@@ -337,6 +338,7 @@ for court in court_full_names:
     # search only names we need
     for name in names_to_search_this_court:
         print court, name, str(count_remaining), 'left'
+        sys.stdout.flush()
         count_remaining -= 1
         sleep(1)
         searchCourt(name, court)
@@ -359,6 +361,7 @@ for court in court_full_names:
     count_remaining = len(cases_to_detail)
     for case_number in cases_to_detail:
         print court, case_number, str(count_remaining), 'left'
+        sys.stdout.flush()
         count_remaining -= 1
         sleep(1)
         case_details(case_number, court)
