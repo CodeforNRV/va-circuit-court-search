@@ -17,6 +17,11 @@
                 padding: 2px 10px;
             }
 
+            .party-separator {
+                font-size: 16px;
+                margin: 10px;
+            }
+
             .case-ignore, .sub-case-ignore {
                 font-size: 10px;
             }
@@ -77,9 +82,28 @@
                 $('#current-court-data').html('<div class="text-muted">Loading...</div>');
                 $.get('/' + region + '/first_level/' + court, function(data) {
                     $('#current-court-data').html(data.html);
+                    $('#platiff-cases-total-to-load').html(data.second_level_case_names.length);
+                    loadSecondLevelSearches(region, court, data.second_level_case_names);
                     toggleIgnoredVisibility(false);
                 })
                 .fail(function() {
+                });
+            }
+
+            function loadSecondLevelSearches(region, court, names) {
+                $('#platiff-cases-left-to-load').html(names.length);
+                if(names.length == 0) {
+                    return;
+                }
+
+                $.get('/' + region + '/second_level/' + names[0] + '/' + court, function(data) {
+                    $('.sub-case-' + names[0].replace(',', '').replace(' ', '-')).html(data);
+                    toggleIgnoredVisibility(ignoredVisibility);
+                    loadSecondLevelSearches(region, court, names.slice(1));
+                })
+                .fail(function() {
+                    $('.sub-case-' + names[0].replace(',', '').replace(' ', '-')).html('ERROR');
+                    loadSecondLevelSearches(region, court, names.slice(1));
                 });
             }
 

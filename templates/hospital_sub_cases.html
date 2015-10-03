@@ -1,6 +1,23 @@
-{% for sub_case in sub_cases|sort(attribute='court_name_short') %}
-    <div class="sub-case {% if sub_case.case.ignore %}sub-case-ignore{% endif %} {% if sub_case.case.same_court %}sub-case-same-court text-muted{% endif %}">
-        <div>{{ sub_case.court_name_short }} <small class="text-muted">{{ sub_case.case.caseNumber }}</small></div>
-        <div>{{ sub_case.case.Plaintiff }} v {{ sub_case.case.Defendant }}</div>
+{% for case in cases|sort(attribute='court_name_short') %}
+    <div class="sub-case{% if case.details.ignore %} sub-case-ignore{% endif %}{% if case.details.same_court %} sub-case-same-court text-muted{% endif %}">
+        <div>
+            <span>{{ case.court_name_short }}<span>
+            <small class="text-muted">{{ case.details.caseNumber }}</small>
+            <span>
+                {% if 'FilingType' in case.details %}
+                    {{ case.details.FilingType}}
+                {% endif %}
+            </span>
+            <span class="text-muted">
+                {% if 'Filed' in case.details %}
+                    {{ case.details.Filed.strftime('%Y-%m-%d') }}
+                {% endif %}
+            </span>
+        </div>
+        <div>
+            {{ case.details.Plaintiff }}
+            <span class="party-separator">v</span>
+            {{ case.details.Defendant }}
+        </div>
     </div>
 {% endfor %}

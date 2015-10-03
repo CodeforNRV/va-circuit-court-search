@@ -98,6 +98,7 @@ def court(region, court):
     for case in cases:
         case_plaintiff_name = reduce_name(case['Plaintiff'])
         if case_plaintiff_name is None: continue
+        case['plaintiff_name'] = case_plaintiff_name.replace(',', '').replace(' ', '-')
         second_level_case_names.add(case_plaintiff_name)
     data = {
         'region': region,
@@ -112,23 +113,35 @@ def court(region, court):
     }
     return jsonify(**data)
 
-@app.route("/<region>/second_level/<name>")
-def second_level_search(region, name):
+@app.route("/<region>/second_level/<name>/<path:court>")
+def second_level_search(region, name, court):
     db = pymongo.MongoClient(os.environ['MONGO_URI'])['hospital-civil-cases']
-    sub_cases = []
-    sub_searches = db['cases'].find({'name': name})
-    for sub_search in sub_searches:
-        for sub_case in sub_search['civilCases']:
-            if not sub_case['Plaintiff'].startswith(name):
-                sub_case['ignore'] = True
-            if sub_search['court'] == court:
-                sub_case['same_court'] = True
-            sub_cases.append({
-                'court': sub_search['court'],
-                'court_name_short': sub_search['court'][5:-14],
-                'case': sub_case
+    cases = []
+    case_numbers = set()
+    searches = db['cases'].find({'name': name})
+    for search in searches:
+        for case in search['civilCases']:
+            if not case['Plaintiff'].startswith(name):
+                case['ignore'] = True
+            else:
+                case_numbers.add(case['caseNumber'])
+            if search['court'] == court:
+                case['same_court'] = True
+            cases.append({
+                'court': search['court'],
+                'court_name_short': search['court'][5:-14],
+                'details': case
             })
-    return render_template('hospital_sub_cases.html', sub_cases=sub_cases)
+    detailed_cases = list(db['detailed_cases'].find(
+        {'caseNumber': {'$in': list(case_numbers)}},
+        ['FilingType', 'Filed', 'caseNumber', 'court']))
+    for case in cases:
+        for detailed_case in detailed_cases:
+            if case['court'] == detailed_case['court'] and case['details']['caseNumber'] == detailed_case['caseNumber']:
+                case['details']['FilingType'] = detailed_case['FilingType']
+                case['details']['Filed'] = detailed_case['Filed']
+                break
+    return render_template('hospital_sub_cases.html', cases=cases)
 
 @app.route("/<region>/searches_completed/<path:court>")
 def court_searches_completed(region, court):
