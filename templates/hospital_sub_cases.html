@@ -1,5 +1,6 @@
 {% for case in cases|sort(attribute='court_name_short') %}
-    <div class="sub-case{% if case.details.ignore %} sub-case-ignore{% endif %}{% if case.details.same_court %} sub-case-same-court text-muted{% endif %}">
+    <div class="sub-case{% if case.details.ignore %} sub-case-ignore{% endif %}{% if case.details.same_court %} sub-case-same-court text-muted{% endif %}"
+    {% if 'Filed' in case.details %} data-filed="{{ case.details.Filed.strftime('%Y-%m-%d') }}"{% endif %}>
         <div>
             <span>{{ case.court_name_short }}<span>
             <small class="text-muted">{{ case.details.caseNumber }}</small>

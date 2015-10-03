@@ -95,14 +95,21 @@
                 if(names.length == 0) {
                     return;
                 }
-
+                var selector = '.sub-case-' + names[0].replace(',', '').replace(' ', '-');
                 $.get('/' + region + '/second_level/' + names[0] + '/' + court, function(data) {
-                    $('.sub-case-' + names[0].replace(',', '').replace(' ', '-')).html(data);
+                    $(selector).html(data);
+                    /*var caseFiled = $(selector).parents('.case-row').data('filed');
+                    $(selector).find('.sub-case').each(function() {
+                        var subCaseFiled = $(this).data('filed');
+                        if(caseFiled && subCaseFiled && new Date(caseFiled) > new Date(subCaseFiled)) {
+                            $(this).addClass('sub-case-ignore');
+                        }
+                    });*/
                     toggleIgnoredVisibility(ignoredVisibility);
                     loadSecondLevelSearches(region, court, names.slice(1));
                 })
                 .fail(function() {
-                    $('.sub-case-' + names[0].replace(',', '').replace(' ', '-')).html('ERROR');
+                    $(selector).html('ERROR');
                     loadSecondLevelSearches(region, court, names.slice(1));
                 });
             }
