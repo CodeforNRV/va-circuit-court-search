@@ -6,16 +6,14 @@ app = Flask(__name__)
 
 search_terms_by_region = {
     'CARILION': ['CARILION'],
-    'SENTARA': ['SENTARA']
+    'SENTARA': ['SENTARA'],
+    'LEWIS GALE': ['LEWIS GALE', 'LEWIS-GALE', 'LEWISGALE']
 }
 
 @app.route("/")
 def index():
     data = {
-        'regions': [
-            'CARILION',
-            'SENTARA'
-        ]
+        'regions': search_terms_by_region.keys()
     }
     return render_template('hospitals.html', data=data)
 
@@ -98,7 +96,7 @@ def court(region, court):
     for case in cases:
         case_plaintiff_name = reduce_name(case['Plaintiff'])
         if case_plaintiff_name is None: continue
-        case['plaintiff_name'] = case_plaintiff_name.replace(',', '').replace(' ', '-')
+        case['plaintiff_name'] = case_plaintiff_name.replace(',', '').replace('.','').replace(' ', '-')
         second_level_case_names.add(case_plaintiff_name)
     data = {
         'region': region,

@@ -311,6 +311,7 @@ total_searches = 0
 
 # get started
 name = sys.argv[1].upper()
+print name
 court_name_filter = None
 if len(sys.argv) > 2:
     court_name_filter = sys.argv[2].upper()

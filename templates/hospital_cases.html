@@ -10,6 +10,7 @@
 </h4>
 {% for case in data.civil_cases %}
     <div class="row case-row {% if case.ignore %}case-ignore{% endif %}"
+        data-plaintiff="{{ case.Plaintiff }}"
         {% if 'Filed' in case %} data-filed="{{ case.Filed.strftime('%Y-%m-%d') }}"{% endif %}>
         <div class="col-xs-6">
             <div>{{ case.partyType }} {{ case.name }}</div>
