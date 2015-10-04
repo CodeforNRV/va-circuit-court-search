@@ -49,8 +49,9 @@ def get_hearings_from_table(case, table):
                      .encode('ascii', 'ignore')
             if val != '':
                 hearing[col_names[i]] = val
-        hearing_dt = hearing['Date'] + hearing['Time']
-        hearing['Datetime'] = datetime.datetime.strptime(hearing_dt, "%m/%d/%y%I:%M%p")
+        hearing_dt = hearing['Date'] + '-' + hearing['Time']
+        hearing_dt = hearing_dt.replace('-0:', '-12:')
+        hearing['Datetime'] = datetime.datetime.strptime(hearing_dt, "%m/%d/%y-%I:%M%p")
         case['Hearings'].append(hearing)
 
 def get_disposition_from_table(case, table):
