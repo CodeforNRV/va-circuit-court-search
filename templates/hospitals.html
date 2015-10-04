@@ -97,25 +97,27 @@
                 }
                 var selector = '.sub-case-' + names[0].replace(',', '').replace('.','').replace(' ', '-');
                 $.get('/' + region + '/second_level/' + names[0] + '/' + court, function(data) {
-                    $(selector).html(data);
-                    var caseFiled = $(selector).parents('.case-row').data('filed');
-                    var casePlaintiff = $(selector).parents('.case-row').data('plaintiff');
-                    $(selector).find('.sub-case').each(function() {
-                        var subCaseFilingType = $(this).data('filing-type');
-                        if (subCaseFilingType == 'Divorce' ||
-                            subCaseFilingType == 'Motor Vehicle' ||
-                            subCaseFilingType == 'Name Change') {
-                            $(this).addClass('sub-case-ignore');
-                        }
-                        var subCasePlaintiff = $(this).data('plaintiff');
-                        if(!namesCompletelyMatch(casePlaintiff, subCasePlaintiff)) {
-                            console.log('Name mismatch: ' + casePlaintiff + ' | ' + subCasePlaintiff);
-                            $(this).addClass('sub-case-ignore');
-                        }
-                        /*var subCaseFiled = $(this).data('filed');
-                        if(caseFiled && subCaseFiled && new Date(caseFiled) > new Date(subCaseFiled)) {
-                            $(this).addClass('sub-case-ignore');
-                        }*/
+                    $(selector).each(function(){
+                        $(this).html(data);
+                        var caseFiled = $(this).parents('.case-row').data('filed');
+                        var casePlaintiff = $(this).parents('.case-row').data('plaintiff');
+                        $(this).find('.sub-case').each(function() {
+                            var subCaseFilingType = $(this).data('filing-type');
+                            if (subCaseFilingType == 'Divorce' ||
+                                subCaseFilingType == 'Motor Vehicle' ||
+                                subCaseFilingType == 'Name Change') {
+                                $(this).addClass('sub-case-ignore');
+                            }
+                            var subCasePlaintiff = $(this).data('plaintiff');
+                            if(!namesCompletelyMatch(casePlaintiff, subCasePlaintiff)) {
+                                console.log('Name mismatch: ' + casePlaintiff + ' | ' + subCasePlaintiff);
+                                $(this).addClass('sub-case-ignore');
+                            }
+                            /*var subCaseFiled = $(this).data('filed');
+                            if(caseFiled && subCaseFiled && new Date(caseFiled) > new Date(subCaseFiled)) {
+                                $(this).addClass('sub-case-ignore');
+                            }*/
+                        });
                     });
                     toggleIgnoredVisibility(ignoredVisibility);
                     loadSecondLevelSearches(region, court, names.slice(1));
