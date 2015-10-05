@@ -13,18 +13,26 @@
         data-plaintiff="{{ case.Plaintiff }}"
         {% if 'Filed' in case %} data-filed="{{ case.Filed.strftime('%Y-%m-%d') }}"{% endif %}>
         <div class="col-xs-6">
-            <div>{{ case.partyType }} {{ case.name }}</div>
             <div>
                 <small class="text-muted">{{ case.caseNumber }}</small>
                 <span class="{{case.caseNumber}}-filing-type">{{ case.FilingType }}</span>
                 <span class="text-muted">{% if 'Filed' in case %}{{ case.Filed.strftime('%Y-%m-%d') }}{% endif %}</span>
             </div>
+            <div>{{ case.Plaintiff }}</div>
+            {% for plaintiff in case.Plaintiffs %}
+                {% if plaintiff != case.Plaintiff %}
+                    <div class="additional-party">{{ plaintiff }}</div>
+                {% endif %}
+            {% endfor %}
         </div>
         <div class="col-xs-6 text-right">
-            <div>
-                <span>{{ case.otherName }}</span>
-            </div>
-            <div class="text-muted"><small>{{ case.status }}</small></div>
+            <div class="text-muted">Status: {{ case.status }}</div>
+            <div>{{ case.Defendant }}</div>
+            {% for defendant in case.Defendants %}
+                {% if defendant != case.Defendant %}
+                    <div class="additional-party">{{ defendant }}</div>
+                {% endif %}
+            {% endfor %}
         </div>
         <div class="col-sm-10 col-sm-offset-2">
             <div class="info"></div>

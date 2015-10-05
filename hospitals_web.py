@@ -82,13 +82,15 @@ def court(region, court):
     detailed_cases = list(db['detailed_cases'].find({
         'court': court,
         'caseNumber': {'$in': case_numbers}},
-        ['FilingType', 'Filed', 'caseNumber']))
+        ['FilingType', 'Filed', 'caseNumber', 'Defendants', 'Plaintiffs']))
     # fill in filing type of top level cases
     for detailed_case in detailed_cases:
         for case in cases:
             if case['caseNumber'] == detailed_case['caseNumber']:
                 case['FilingType'] = detailed_case['FilingType']
                 case['Filed'] = detailed_case['Filed']
+                case['Plaintiffs'] = [x[1] for x in detailed_case['Plaintiffs']]
+                case['Defendants'] = [x[1] for x in detailed_case['Defendants']]
                 break
     # load second level cases
     print 'Second level cases'
@@ -132,12 +134,14 @@ def second_level_search(region, name, court):
             })
     detailed_cases = list(db['detailed_cases'].find(
         {'caseNumber': {'$in': list(case_numbers)}},
-        ['FilingType', 'Filed', 'caseNumber', 'court']))
+        ['FilingType', 'Filed', 'caseNumber', 'court', 'Defendants', 'Plaintiffs']))
     for case in cases:
         for detailed_case in detailed_cases:
             if case['court'] == detailed_case['court'] and case['details']['caseNumber'] == detailed_case['caseNumber']:
                 case['details']['FilingType'] = detailed_case['FilingType']
                 case['details']['Filed'] = detailed_case['Filed']
+                case['details']['Plaintiffs'] = [x[1] for x in detailed_case['Plaintiffs']]
+                case['details']['Defendants'] = [x[1] for x in detailed_case['Defendants']]
                 break
     return render_template('hospital_sub_cases.html', cases=cases)
 

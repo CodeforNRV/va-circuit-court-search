@@ -17,10 +17,23 @@
                 {% endif %}
             </span>
         </div>
-        <div>
-            {{ case.details.Plaintiff }}
-            <span class="party-separator">v</span>
-            {{ case.details.Defendant }}
+        <div class="row">
+            <div class="col-xs-4">
+                <div>{{ case.details.Plaintiff }}</div>
+                {% for plaintiff in case.details.Plaintiffs %}
+                    {% if plaintiff != case.details.Plaintiff %}
+                        <div class="additional-party">{{ plaintiff }}</div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="col-xs-6">
+                <div>{{ case.details.Defendant }}</div>
+                {% for defendant in case.details.Defendants %}
+                    {% if defendant != case.details.Defendant %}
+                        <div class="additional-party">{{ defendant }}</div>
+                    {% endif %}
+                {% endfor %}
+            </div>
         </div>
     </div>
 {% endfor %}
