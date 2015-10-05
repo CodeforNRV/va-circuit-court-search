@@ -53,7 +53,17 @@
                         {{ data.percent_searched }} complete ({{ data.searches_completed }} of {{ data.searches_to_complete }})
                     </div>
                 </div>
-                <h4>{{ data.region }}</h4>
+                <h4>
+                    {{ data.region }}
+                    <button type="button"
+                            class="btn btn-xs"
+                            id="search-terms"
+                            data-toggle="popover"
+                            title="Search Terms"
+                            data-content="{% for search_term in data.region_search_terms %}<div>{{ search_term }}</div>{% endfor %}">
+                        Search Terms
+                    </button>
+                </h4>
                 <button id="case-ignore-button" class="btn btn-link" onclick="toggleIgnoredCourtsVisibility()"></button>
                 <div class="row">
                     <div class="col-xs-3">
@@ -209,6 +219,7 @@
             }
 
             (function() {
+                $('#search-terms').popover({html: true, trigger: 'hover'});
                 toggleIgnoredCourtsVisibility(false);
             })();
         </script>

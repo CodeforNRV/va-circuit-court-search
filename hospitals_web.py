@@ -48,6 +48,7 @@ def region(region):
     percent_searched = "{0:.0f}%".format(float(searches_completed)/float(searches_to_complete) * 100)
     data = {
         'region': region,
+        'region_search_terms': search_terms_by_region[region],
         'courts': courts,
         'names_to_search_count': len(names_to_search),
         'percent_searched': percent_searched,
