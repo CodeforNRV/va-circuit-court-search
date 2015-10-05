@@ -6,6 +6,7 @@ app = Flask(__name__)
 
 search_terms_by_region = {
     'CARILION': ['CARILION'],
+    'BON SECOURS': ['BON SECOURS'],
     'SENTARA': ['SENTARA'],
     'LEWIS GALE': ['LEWIS GALE', 'LEWIS-GALE', 'LEWISGALE'],
     'VCU': ['VIRGINIA COMMONWEALTH HEALTH', 'VCU HEALTH', 'MEDICAL COLLEGE OF V', 'MCV', 'M.C.V', 'M C V']
