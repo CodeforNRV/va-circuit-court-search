@@ -174,7 +174,9 @@ def should_do_second_level_search(plaintiff_name, first_level_search_name):
 def reduce_name(name):
     if 'COUNTY OF' in name: return None
     if 'CITY OF' in name: return None
-    name = name.replace(';',' ')
+    if 'COMMONWEALTH OF' in name: return None
+    if 'NATIONSBANK' in name: return None
+    name = name.replace(';',' ').replace('.', '')
     name_parts = name.split(' ')
     if len(name_parts) < 2 or not name_parts[0].endswith(','): return None
     name = ' '.join(name_parts[:2])
