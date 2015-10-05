@@ -7,7 +7,8 @@ app = Flask(__name__)
 search_terms_by_region = {
     'CARILION': ['CARILION'],
     'SENTARA': ['SENTARA'],
-    'LEWIS GALE': ['LEWIS GALE', 'LEWIS-GALE', 'LEWISGALE']
+    'LEWIS GALE': ['LEWIS GALE', 'LEWIS-GALE', 'LEWISGALE'],
+    'VCU': ['VCU HEALTH', 'MCV', 'MEDICAL COLLEGE OF V', 'VIRGINIA COMMONWEALTH HEALTH']
 }
 
 @app.route("/")
