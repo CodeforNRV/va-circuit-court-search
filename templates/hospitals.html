@@ -94,7 +94,7 @@
                 if(names.length == 0) {
                     return;
                 }
-                var selector = '.sub-case-' + names[0].replace(',', '').replace('.','').replace(' ', '-');
+                var selector = '.sub-case-' + names[0].replace(/,/g, '').replace(/\./g,'').replace(/ /g, '-');
                 $.get('/' + region + '/second_level/' + names[0] + '/' + court, function(data) {
                     $(selector).each(function(){
                         $(this).html(data);

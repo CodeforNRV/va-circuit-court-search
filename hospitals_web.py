@@ -8,7 +8,7 @@ search_terms_by_region = {
     'CARILION': ['CARILION'],
     'SENTARA': ['SENTARA'],
     'LEWIS GALE': ['LEWIS GALE', 'LEWIS-GALE', 'LEWISGALE'],
-    'VCU': ['VCU HEALTH', 'MCV', 'MEDICAL COLLEGE OF V', 'VIRGINIA COMMONWEALTH HEALTH']
+    'VCU': ['VIRGINIA COMMONWEALTH HEALTH', 'VCU HEALTH', 'MEDICAL COLLEGE OF V', 'MCV', 'M.C.V', 'M C V']
 }
 
 @app.route("/")
