@@ -101,7 +101,7 @@ def court(region, court):
     for case in cases:
         case_plaintiff_name = reduce_name(case['Plaintiff'])
         if case_plaintiff_name is None: continue
-        case['plaintiff_name'] = case_plaintiff_name.replace(',', '').replace('.','').replace(' ', '-')
+        case['plaintiff_name'] = case_plaintiff_name.replace(',', '').replace('.','').replace('\'','').replace(' ', '-')
         second_level_case_names.add(case_plaintiff_name)
     data = {
         'region': region,
