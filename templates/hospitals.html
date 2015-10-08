@@ -115,6 +115,7 @@
                             if (subCaseFilingType == 'Divorce' ||
                                 subCaseFilingType == 'Motor Vehicle' ||
                                 subCaseFilingType == 'Reinstatement Of Driving Privileges' ||
+                                subCaseFilingType == 'Restore Driving Privilege' ||
                                 subCaseFilingType == 'Encumber/Sell Real Estate' ||
                                 subCaseFilingType == 'Appointment Of Guardian And/Or Conservator' ||
                                 subCaseFilingType == 'Guardian Appointment' ||
@@ -126,7 +127,6 @@
                             }
                             var subCasePlaintiff = $(this).data('plaintiff');
                             if(!namesCompletelyMatch(casePlaintiff, subCasePlaintiff)) {
-                                console.log('Name mismatch: ' + casePlaintiff + ' | ' + subCasePlaintiff);
                                 $(this).addClass('sub-case-ignore');
                             }
                         });
