@@ -9,7 +9,7 @@ import locale
 from bson.son import SON
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-from flask import Flask, session, render_template, request
+from flask import Flask, session, render_template, request, redirect
 from pprint import pprint
 
 app = Flask(__name__)
@@ -336,44 +336,7 @@ def charges():
 
 @app.route("/opendata")
 def open_data():
-    client = pymongo.MongoClient(os.environ['MONGO_CASES_URI'])
-    db = client.va_circuit_court_cases
-    locale.resetlocale()
-    case_number_count = locale.format("%d", db.case_numbers.count(), grouping=True)
-    data = {
-        'case_number_count': case_number_count
-    }
-    return render_template('open_data.html', data=data)
-
-@app.route("/opendata/progress")
-def open_data_progress():
-    client = pymongo.MongoClient(os.environ['MONGO_CASES_URI'])
-    db = client.va_circuit_court_cases
-    data = db.case_numbers.aggregate([
-        {'$sort': SON([
-            ('court', 1),
-            ('name', 1)
-        ])},
-        {'$group':{
-            '_id': {
-                'court': '$court'
-            },
-            'firstName': {'$first': '$name'},
-            'lastName': {'$last': '$name'},
-            'count': {'$sum': 1}
-        }},
-        {'$sort': SON([
-            ('_id.court', 1)
-        ])}
-    ])['result']
-    chart = pygal.HorizontalBar(style=pygal.style.RedBlueStyle, show_legend=False, height=1500)
-    chart.x_labels = [x['_id']['court'] for x in data][::-1]
-    chart.add('', [x['count'] for x in data][::-1])
-    return chart.render() + str(render_template('open_data_progress.html', data=data))
-
-@app.route("/sampleLetter")
-def sample_letter():
-    return render_template('sample_letter.html')
+    return redirect("http://virginiacourtdata.org/", code=302)
 
 @app.route("/stats")
 def stats():
