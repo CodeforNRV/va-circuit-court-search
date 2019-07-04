@@ -80,7 +80,7 @@ def lookupCases(opener, name, court, division):
     return cases
 
 
-@app.route("/search/<name>/court/<path:court>")
+#@app.route("/search/<name>/court/<path:court>")
 def searchCourt(name, court):
     if 'cookies' not in session:
         return "Error. Please reload the page."
@@ -129,7 +129,7 @@ def searchCourt(name, court):
     return render_template('court.html', court=courtSearch)
 
 
-@app.route("/search/<name>")
+#@app.route("/search/<name>")
 def search(name):
     db = pymongo.MongoClient(os.environ['MONGO_URI'])['va-circuit-court-search']
     db['cases'].remove({
@@ -164,9 +164,10 @@ def search(name):
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    #return render_template('index.html')
+    return render_template('archived.html')
 
-@app.route("/charges")
+#@app.route("/charges")
 def charges():
     client = pymongo.MongoClient(os.environ['MONGO_URI'])
     db = client.va_circuit_court
@@ -288,15 +289,15 @@ def charges():
 
     return render_template('charges.html', charges=charges, charges_amended=charges_amended)
 
-@app.route("/opendata")
+#@app.route("/opendata")
 def open_data():
     return redirect("http://virginiacourtdata.org/", code=302)
 
-@app.route("/stats")
+#@app.route("/stats")
 def stats():
     return render_template('stats.html')
 
-@app.route("/stats/graph", methods=['POST'])
+#@app.route("/stats/graph", methods=['POST'])
 def graph():
     categories = request.get_json(force=True)['categories']
     print categories

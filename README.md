@@ -1,6 +1,10 @@
 Virginia Circuit Court Search
 =======================
 
+## Archived
+
+The state has released a new version of their website with statewide search. This project is no longer necessary.
+
 Virginia Courts Case Information - Statewide Searches ARE Possible
 
 http://VACircuitCourtSearch.com
